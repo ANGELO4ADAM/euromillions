@@ -101,6 +101,12 @@ body {
   border: 1px solid var(--border);
 }
 
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(143, 124, 255, 0.25);
@@ -202,6 +208,10 @@ body {
   font-size: 14px;
 }
 
+.muted.minor {
+  font-size: 12px;
+}
+
 .tag {
   padding: 6px 10px;
   border-radius: 999px;
@@ -285,7 +295,8 @@ body {
 }
 
 .live select,
-.live textarea {
+.live textarea,
+.live input[type="url"] {
   width: 100%;
   margin-top: 6px;
   background: rgba(255, 255, 255, 0.05);
@@ -297,10 +308,18 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+.live select:focus,
+.live textarea:focus,
+.live input[type="url"]:focus {
+  outline: none;
+  border-color: rgba(123, 220, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(123, 220, 255, 0.18);
+}
+
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
   margin-bottom: 8px;
 }
 

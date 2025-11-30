@@ -84,6 +84,13 @@ def test_unknown_strategy_returns_404():
     assert "Stratégie inconnue" in response.json()["detail"]
 
 
+def test_unknown_game_returns_422():
+    payload = build_payload(game="eurobillion")
+    response = client.post("/api/generate/random", json=payload)
+    assert response.status_code == 422
+    assert "Jeu inconnu" in response.json()["detail"]
+
+
 def test_empty_history_rejected():
     response = client.post("/api/generate/random", json={"draws": []})
     assert response.status_code == 422
@@ -95,3 +102,13 @@ def test_invalid_draw_rejected():
     response = client.post("/api/generate/random", json=payload)
     assert response.status_code == 422
     assert "Tirage invalide" in response.json()["detail"]
+
+
+def test_health_exposes_games_and_strategies():
+    response = client.get("/api/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert set(data["games"]) == {"euromillion", "eurodream"}
+    assert {"frequency", "random", "fibo", "mcc", "spectre", "meta_ia"}.issubset(
+        set(data["strategies"])
+    )

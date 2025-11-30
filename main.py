@@ -98,7 +98,11 @@ def homepage() -> Dict[str, object]:
 
 @app.get("/api/health")
 def health() -> Dict[str, str]:
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "strategies": sorted(STRATEGIES.keys()),
+        "games": sorted(GAME_PROFILES.keys()),
+    }
 
 
 def _validate_draw(draw: Draw, game_profile: Dict) -> None:

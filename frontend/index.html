@@ -103,6 +103,11 @@
             <option value="meta_ia">meta_ia</option>
           </select>
         </label>
+        <label>
+          <span class="eyebrow">API base</span>
+          <input id="api-base" type="url" placeholder="http://localhost:8000" />
+          <p class="muted minor">Défaut : origine actuelle ou localhost si ouvert en file://</p>
+        </label>
       </div>
       <label class="stack">
         <span class="eyebrow">History (JSON payload)</span>
@@ -163,9 +168,11 @@
 
     historyField.value = JSON.stringify(samplePayload, null, 2);
 
-    const API_BASE = window.location.origin && window.location.origin !== "null"
+    const apiField = document.getElementById("api-base");
+    const defaultBase = window.location.origin && window.location.origin !== "null"
       ? window.location.origin
       : "http://localhost:8000";
+    apiField.placeholder = defaultBase;
 
     document.getElementById("run").addEventListener("click", async () => {
       let payload;
@@ -179,12 +186,16 @@
       }
 
       const strategie = strategyField.value;
-      statusEl.textContent = "Calling /api/generate/" + strategie + " ...";
+      const base = apiField.value.trim() || defaultBase;
+      statusEl.textContent = `Calling ${base}/api/generate/${strategie} ...`;
       statusEl.classList.remove("error");
       resultEl.innerHTML = "";
+      const runBtn = document.getElementById("run");
+      runBtn.disabled = true;
+      runBtn.textContent = "Calling...";
 
       try {
-        const response = await fetch(`${API_BASE}/api/generate/${strategie}`, {
+        const response = await fetch(`${base}/api/generate/${strategie}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -229,6 +240,9 @@
         console.error(err);
         statusEl.textContent = "API inaccessible : démarrez le backend (uvicorn main:app --reload).";
         statusEl.classList.add("error");
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = "Call API";
       }
     });
   </script>

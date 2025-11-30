@@ -14,7 +14,7 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 4. Prévisualiser l'interface et piloter l'API :
    * Ouvrir `frontend/index.html` (fichier local ou via `python -m http.server --directory frontend 8001` ou `make frontend`)
    * Sélectionner le jeu (`EUROMILLION` ou `EURODREAM`), la stratégie, garder ou modifier le payload d'exemple, puis cliquer sur **Call API**.
-   * Par défaut, le frontend appelle `http://localhost:8000` si l'origine est `file://` ; sinon il utilise l'origine actuelle.
+   * Par défaut, le frontend appelle `http://localhost:8000` si l'origine est `file://` ; sinon il utilise l'origine actuelle. Un champ "API base" permet de cibler un autre backend.
 4. Exemple de payload pour `/api/generate/frequency` (le champ `game` peut valoir `euromillion` ou `eurodream`) :
    ```json
    {
@@ -30,7 +30,7 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 ## Routes disponibles hors-ligne
 * `GET /` : page d'accueil listant EUROMILLION et EURODREAM, avec un rappel bilingue (fr/en) que le générateur est uniquement ludique, ne garantit aucun gain et invite à jouer de manière responsable.
 * `POST /api/generate/{strategie}` : lance une stratégie (ex. `frequency`, `random`, `fibo`, `mcc`, `spectre`, `meta_ia`) avec un historique de tirages.
-* `GET /api/health` : vérifie que le service répond.
+* `GET /api/health` : vérifie que le service répond et expose les jeux/stratégies disponibles.
 
 ## Prototype UI (offline)
 * Ouvrir `frontend/index.html` directement dans un navigateur pour prévisualiser une landing moderne (dégradés subtils, cartes vitrée, typographie Inter/Space Grotesk).
