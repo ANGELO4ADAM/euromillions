@@ -52,6 +52,16 @@ def test_random_strategy_route_returns_sorted_values():
     assert data["stars"] == sorted(data["stars"])
 
 
+def test_fibo_mcc_spectre_and_meta_ia_routes():
+    for strategy in ["fibo", "mcc", "spectre", "meta_ia"]:
+        response = client.post(f"/api/generate/{strategy}", json=build_payload())
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["numbers"]) == GAME_PROFILE["numbers_to_pick"]
+        assert len(data["stars"]) == GAME_PROFILE["stars_to_pick"]
+        assert data["method_used"] == strategy
+
+
 def test_unknown_strategy_returns_404():
     response = client.post("/api/generate/inconnue", json=build_payload())
     assert response.status_code == 404

@@ -38,8 +38,12 @@ app = FastAPI(title="EuroMillions Generator")
 
 
 STRATEGIES = {
+    "fibo": ml_strategies.fibo_strategy,
     "frequency": ml_strategies.frequency_strategy,
+    "mcc": ml_strategies.mcc_strategy,
+    "meta_ia": ml_strategies.meta_ia_strategy,
     "random": ml_strategies.random_strategy,
+    "spectre": ml_strategies.spectre_strategy,
 }
 
 

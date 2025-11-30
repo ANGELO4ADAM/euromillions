@@ -18,7 +18,7 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 
 ## Routes disponibles hors-ligne
 * `GET /` : page d'accueil listant EUROMILLION et EURODREAM, avec un rappel bilingue (fr/en) que le générateur est uniquement ludique, ne garantit aucun gain et invite à jouer de manière responsable.
-* `POST /api/generate/{strategie}` : lance une stratégie (ex. `frequency`, `random`) avec un historique de tirages.
+* `POST /api/generate/{strategie}` : lance une stratégie (ex. `frequency`, `random`, `fibo`, `mcc`, `spectre`, `meta_ia`) avec un historique de tirages.
 * `GET /api/health` : vérifie que le service répond.
 
 ## Prototype UI (offline)
@@ -34,3 +34,7 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 ## Stratégies disponibles
 * `frequency` : sélection des valeurs les plus fréquentes dans l’historique
 * `random` : tirage aléatoire trié dans les bornes du profil de jeu
+* `fibo` : exploite les intervalles Fibonacci (1,2,3,5,8,13) pour extraire les valeurs récurrentes
+* `mcc` : pondération inversée sur les 80 derniers tirages pour favoriser les numéros/étoiles en retard
+* `spectre` : compare court terme (20) et long terme (120) pour détecter des retours probables
+* `meta_ia` : consensus entre FIBO, MCC et SPECTRE pour stabiliser la grille
