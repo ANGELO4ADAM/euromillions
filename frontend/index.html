@@ -79,6 +79,42 @@
       </ul>
     </section>
 
+    <section class="card live">
+      <div class="card-header">
+        <h2>Live generator</h2>
+        <span class="pill soft">API bridge</span>
+      </div>
+      <div class="form-grid">
+        <label>
+          <span class="eyebrow">Game</span>
+          <select id="game">
+            <option value="euromillion" selected>EUROMILLION</option>
+            <option value="eurodream">EURODREAM</option>
+          </select>
+        </label>
+        <label>
+          <span class="eyebrow">Strategy</span>
+          <select id="strategie">
+            <option value="frequency" selected>frequency</option>
+            <option value="random">random</option>
+            <option value="fibo">fibo</option>
+            <option value="mcc">mcc</option>
+            <option value="spectre">spectre</option>
+            <option value="meta_ia">meta_ia</option>
+          </select>
+        </label>
+      </div>
+      <label class="stack">
+        <span class="eyebrow">History (JSON payload)</span>
+        <textarea id="history" rows="6"></textarea>
+      </label>
+      <div class="cta-row gap">
+        <button class="btn primary" id="run">Call API</button>
+        <div class="status" id="status">Ready — use the sample payload or paste your own draws.</div>
+      </div>
+      <div class="result-grid" id="result" aria-live="polite"></div>
+    </section>
+
     <section class="card">
       <div class="card-header">
         <h2>Latest insights</h2>
@@ -109,5 +145,92 @@
       </div>
     </section>
   </main>
+  <script>
+    const historyField = document.getElementById("history");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const gameField = document.getElementById("game");
+    const strategyField = document.getElementById("strategie");
+
+    const samplePayload = {
+      draws: [
+        { numbers: [3, 11, 19, 24, 45], stars: [4, 11] },
+        { numbers: [5, 18, 27, 32, 42], stars: [2, 10] },
+        { numbers: [1, 7, 21, 28, 49], stars: [3, 6] },
+      ],
+      game: "euromillion",
+    };
+
+    historyField.value = JSON.stringify(samplePayload, null, 2);
+
+    const API_BASE = window.location.origin && window.location.origin !== "null"
+      ? window.location.origin
+      : "http://localhost:8000";
+
+    document.getElementById("run").addEventListener("click", async () => {
+      let payload;
+      try {
+        payload = JSON.parse(historyField.value || "{}");
+        payload.game = gameField.value;
+      } catch (err) {
+        statusEl.textContent = "Payload invalide : veuillez fournir un JSON valide.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      const strategie = strategyField.value;
+      statusEl.textContent = "Calling /api/generate/" + strategie + " ...";
+      statusEl.classList.remove("error");
+      resultEl.innerHTML = "";
+
+      try {
+        const response = await fetch(`${API_BASE}/api/generate/${strategie}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const body = await response.json();
+        if (!response.ok) {
+          statusEl.textContent = `Erreur ${response.status} : ${body.detail || "échec de l'appel"}`;
+          statusEl.classList.add("error");
+          return;
+        }
+
+        statusEl.textContent = "Réponse reçue";
+        statusEl.classList.remove("error");
+        resultEl.innerHTML = `
+          <div class="result-card">
+            <div>
+              <p class="eyebrow">Numbers</p>
+              <div class="chips">${body.numbers.map((n) => `<span class="chip">${n}</span>`).join("")}</div>
+            </div>
+            <div>
+              <p class="eyebrow">Stars</p>
+              <div class="chips">${body.stars.map((n) => `<span class="chip">${n}</span>`).join("")}</div>
+            </div>
+            <div>
+              <p class="eyebrow">Confidence</p>
+              <p class="figure">${(body.confidence_score * 100).toFixed(1)}%</p>
+            </div>
+            <div>
+              <p class="eyebrow">Method</p>
+              <p class="muted">${body.method_used}</p>
+            </div>
+          </div>
+          <div class="result-card muted-block">
+            <p class="eyebrow">Explanation</p>
+            <p class="muted">${body.explanation}</p>
+            <p class="eyebrow">Features</p>
+            <pre>${JSON.stringify(body.features, null, 2)}</pre>
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "API inaccessible : démarrez le backend (uvicorn main:app --reload).";
+        statusEl.classList.add("error");
+      }
+    });
+  </script>
 </body>
 </html>

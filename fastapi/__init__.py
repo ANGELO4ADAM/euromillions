@@ -33,6 +33,7 @@ class FastAPI:
     def __init__(self, title: str | None = None):
         self.title = title
         self.routes: List[Tuple[str, str, Callable[..., Any]]] = []
+        self.middleware: List[Tuple[Any, Dict[str, Any]]] = []
 
     def _register(self, method: str, path: str, func: Callable[..., Any]) -> Callable[..., Any]:
         self.routes.append((method.upper(), path, func))
@@ -49,6 +50,9 @@ class FastAPI:
             return self._register("POST", path, func)
 
         return decorator
+
+    def add_middleware(self, middleware_class: Any, **options: Any) -> None:
+        self.middleware.append((middleware_class, options))
 
     def resolve(self, method: str, path: str) -> Tuple[Callable[..., Any], Dict[str, str]]:
         for registered_method, template, func in self.routes:

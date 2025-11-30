@@ -5,7 +5,16 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 
 ## Utilisation
 1. Lancer les tests : `pytest`
-2. Exemple de payload pour `/api/generate/frequency` (le champ `game` peut valoir `euromillion` ou `eurodream`) :
+2. Démarrer l'API réelle (avec CORS ouvert pour la preview) :
+   ```bash
+   pip install -r requirements.txt
+   uvicorn main:app --reload --port 8000
+   ```
+3. Prévisualiser l'interface et piloter l'API :
+   * Ouvrir `frontend/index.html` (fichier local ou via `python -m http.server --directory frontend 8001`)
+   * Sélectionner le jeu (`EUROMILLION` ou `EURODREAM`), la stratégie, garder ou modifier le payload d'exemple, puis cliquer sur **Call API**.
+   * Par défaut, le frontend appelle `http://localhost:8000` si l'origine est `file://` ; sinon il utilise l'origine actuelle.
+4. Exemple de payload pour `/api/generate/frequency` (le champ `game` peut valoir `euromillion` ou `eurodream`) :
    ```json
    {
      "draws": [
@@ -15,7 +24,7 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
      "game": "eurodream"
    }
    ```
-3. Les réponses incluent `numbers`, `stars`, `confidence_score`, `method_used`, `explanation`, `features`.
+4. Les réponses incluent `numbers`, `stars`, `confidence_score`, `method_used`, `explanation`, `features`.
 
 ## Routes disponibles hors-ligne
 * `GET /` : page d'accueil listant EUROMILLION et EURODREAM, avec un rappel bilingue (fr/en) que le générateur est uniquement ludique, ne garantit aucun gain et invite à jouer de manière responsable.

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Dict, List
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 import ml_strategies
@@ -44,6 +45,15 @@ GAME_PROFILES = {
 }
 
 app = FastAPI(title="EuroMillions Generator")
+
+# Allow the static frontend (served locally or via file://) to call the API without CORS friction
+if hasattr(app, "add_middleware"):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 # Identique pour les trois jeux pour l'instant, mais la structure permet de différencier les profils plus tard.
