@@ -16,6 +16,7 @@ class Draw(BaseModel):
 
 class GenerateRequest(BaseModel):
     draws: List[Draw] = Field(default_factory=list, description="Historique des tirages")
+    game: str = Field(default="euromillion", description="Nom du jeu ciblé")
 
 
 class StrategyResponse(BaseModel):
@@ -27,14 +28,38 @@ class StrategyResponse(BaseModel):
     features: Dict[str, object]
 
 
-GAME_PROFILE = {
-    "numbers_to_pick": 5,
-    "stars_to_pick": 2,
-    "max_number": 50,
-    "max_star": 12,
+GAME_PROFILES = {
+    "euromillion": {
+        "numbers_to_pick": 5,
+        "stars_to_pick": 2,
+        "max_number": 50,
+        "max_star": 12,
+    },
+    "eurodream": {
+        "numbers_to_pick": 5,
+        "stars_to_pick": 2,
+        "max_number": 50,
+        "max_star": 12,
+    },
+    "eurobillion": {
+        "numbers_to_pick": 5,
+        "stars_to_pick": 2,
+        "max_number": 50,
+        "max_star": 12,
+    },
 }
 
 app = FastAPI(title="EuroMillions Generator")
+
+
+# Identique pour les trois jeux pour l'instant, mais la structure permet de différencier les profils plus tard.
+
+
+def get_game_profile(game: str) -> Dict:
+    game_key = game.lower()
+    if game_key not in GAME_PROFILES:
+        raise HTTPException(status_code=422, detail=f"Jeu inconnu: {game}")
+    return GAME_PROFILES[game_key]
 
 
 STRATEGIES = {
@@ -56,6 +81,7 @@ def homepage() -> Dict[str, object]:
         "games": [
             {"name": "EUROMILLION", "description": "Tirages principaux européens"},
             {"name": "EURODREAM", "description": "Variation exploratoire"},
+            {"name": "EUROBILLION", "description": "Extension futuriste"},
         ],
         "disclaimer": (
             "Ce générateur est fourni à titre ludique : il illustre des estimations sans aucune garantie de gain "
@@ -102,9 +128,11 @@ def generate(strategie: str, payload: GenerateRequest) -> StrategyResponse:
     if strategy_callable is None:
         raise HTTPException(status_code=404, detail=f"Stratégie inconnue: {strategie}")
 
-    _validate_history(payload.draws, GAME_PROFILE)
+    game_profile = get_game_profile(payload.game)
+
+    _validate_history(payload.draws, game_profile)
     draw_history = [draw.model_dump() if hasattr(draw, "model_dump") else draw for draw in payload.draws]
-    features = prepare_features(GAME_PROFILE, draw_history)
-    result = strategy_callable(GAME_PROFILE, draw_history)
+    features = prepare_features(game_profile, draw_history)
+    result = strategy_callable(game_profile, draw_history)
 
     return StrategyResponse(**result, features=features)
