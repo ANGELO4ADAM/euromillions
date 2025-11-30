@@ -26,10 +26,15 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
    }
    ```
 4. Les réponses incluent `numbers`, `stars`, `confidence_score`, `method_used`, `explanation`, `features`.
+5. Si le scraping échoue, un administrateur peut ajouter des tirages manuellement via `POST /api/admin/manual-draws` (voir ci-dessous)
+   puis les consulter via `GET /api/admin/manual-draws/{game}`. Le chemin du fichier stocké peut être ajusté avec
+   `MANUAL_DRAWS_PATH`.
 
 ## Routes disponibles hors-ligne
 * `GET /` : page d'accueil listant EUROMILLION et EURODREAM, avec un rappel bilingue (fr/en) que le générateur est uniquement ludique, ne garantit aucun gain et invite à jouer de manière responsable.
 * `POST /api/generate/{strategie}` : lance une stratégie (ex. `frequency`, `random`, `fibo`, `mcc`, `spectre`, `meta_ia`) avec un historique de tirages.
+* `POST /api/admin/manual-draws` : ingestion manuelle d'un ou plusieurs tirages validés (fallback en cas d'échec du scraping).
+* `GET /api/admin/manual-draws/{game}` : retourne les tirages manuellement saisis pour le jeu ciblé.
 * `GET /api/health` : vérifie que le service répond et expose les jeux/stratégies disponibles.
 
 ## Prototype UI (offline)

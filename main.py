@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 import ml_strategies
+from data_store import append_draws, get_draws
 from preparateur_donnees import prepare_features
 
 
@@ -18,6 +19,11 @@ class Draw(BaseModel):
 class GenerateRequest(BaseModel):
     draws: List[Draw] = Field(default_factory=list, description="Historique des tirages")
     game: str = Field(default="euromillion", description="Nom du jeu ciblé")
+
+
+class ManualDrawImport(BaseModel):
+    game: str = Field(default="euromillion", description="Jeu ciblé")
+    draws: List[Draw] = Field(default_factory=list, description="Tirages à ingérer")
 
 
 class StrategyResponse(BaseModel):
@@ -129,6 +135,10 @@ def _validate_history(draws: List[Draw] | List[Dict], game_profile: Dict) -> Non
         _validate_draw(draw_obj, game_profile)
 
 
+def _normalize_draws(draws: List[Draw] | List[Dict]) -> List[Dict[str, object]]:
+    return [draw.model_dump() if hasattr(draw, "model_dump") else draw for draw in draws]
+
+
 @app.post("/api/generate/{strategie}", response_model=StrategyResponse)
 def generate(strategie: str, payload: GenerateRequest) -> StrategyResponse:
     strategy_callable = STRATEGIES.get(strategie)
@@ -138,8 +148,23 @@ def generate(strategie: str, payload: GenerateRequest) -> StrategyResponse:
     game_profile = get_game_profile(payload.game)
 
     _validate_history(payload.draws, game_profile)
-    draw_history = [draw.model_dump() if hasattr(draw, "model_dump") else draw for draw in payload.draws]
+    draw_history = _normalize_draws(payload.draws)
     features = prepare_features(game_profile, draw_history)
     result = strategy_callable(game_profile, draw_history)
 
     return StrategyResponse(**result, features=features)
+
+
+@app.post("/api/admin/manual-draws")
+def ingest_manual_draws(payload: ManualDrawImport) -> Dict[str, object]:
+    game_profile = get_game_profile(payload.game)
+    _validate_history(payload.draws, game_profile)
+    stored_draws = append_draws(payload.game, _normalize_draws(payload.draws))
+    return {"game": payload.game.lower(), "stored": len(stored_draws)}
+
+
+@app.get("/api/admin/manual-draws/{game}")
+def list_manual_draws(game: str) -> Dict[str, object]:
+    get_game_profile(game)
+    draws = get_draws(game)
+    return {"game": game.lower(), "stored": len(draws), "draws": draws}
