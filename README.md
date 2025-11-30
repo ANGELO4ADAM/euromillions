@@ -34,6 +34,10 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 6. Le champ `use_manual_draws` (bool) permet, côté génération, d'inclure automatiquement l'historique persistant importé par l'administrateur
    pour le jeu ciblé. Si aucune donnée n'est disponible et que `draws` est vide, l'appel renverra un 404 explicite. L'ingestion manuelle accepte
    aussi un flag `replace` pour remplacer intégralement l'historique d'un jeu.
+7. Publication GitHub Pages :
+   * Exécuter `make pages` pour copier le frontend statique dans `docs/` (le dossier par défaut supporté par GitHub Pages).
+   * Pousser la branche et activer GitHub Pages sur la racine `docs/` depuis les paramètres du dépôt.
+   * L’URL publiée servira automatiquement le `index.html` existant avec les assets inclus (CSS/JS inline), sans dépendances externes.
 
 ## Routes disponibles hors-ligne
 * `GET /` : page d'accueil listant EUROMILLION et EURODREAM, avec un rappel bilingue (fr/en) que le générateur est uniquement ludique, ne garantit aucun gain et invite à jouer de manière responsable.
