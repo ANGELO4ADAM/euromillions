@@ -18,6 +18,7 @@ class Response:
 
 
 class TestClient:
+    __test__ = False  # Prevent pytest from collecting this helper as a test class
     def __init__(self, app: FastAPI):
         self.app = app
 

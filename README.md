@@ -4,14 +4,15 @@
 Les dépendances réseau étant limitées, le projet embarque des stubs minimalistes pour FastAPI et Pydantic. Aucune installation n’est requise pour exécuter les tests unitaires.
 
 ## Utilisation
-1. Lancer les tests : `pytest`
-2. Démarrer l'API réelle (avec CORS ouvert pour la preview) :
+1. Lancer les tests : `pytest` (ou `make test`)
+2. Installer les dépendances réelles : `pip install -r requirements.txt` (ou `make install`)
+3. Démarrer l'API réelle (avec CORS ouvert pour la preview) :
    ```bash
-   pip install -r requirements.txt
    uvicorn main:app --reload --port 8000
    ```
-3. Prévisualiser l'interface et piloter l'API :
-   * Ouvrir `frontend/index.html` (fichier local ou via `python -m http.server --directory frontend 8001`)
+   ou simplement `make serve`.
+4. Prévisualiser l'interface et piloter l'API :
+   * Ouvrir `frontend/index.html` (fichier local ou via `python -m http.server --directory frontend 8001` ou `make frontend`)
    * Sélectionner le jeu (`EUROMILLION` ou `EURODREAM`), la stratégie, garder ou modifier le payload d'exemple, puis cliquer sur **Call API**.
    * Par défaut, le frontend appelle `http://localhost:8000` si l'origine est `file://` ; sinon il utilise l'origine actuelle.
 4. Exemple de payload pour `/api/generate/frequency` (le champ `game` peut valoir `euromillion` ou `eurodream`) :
