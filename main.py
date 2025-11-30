@@ -41,12 +41,6 @@ GAME_PROFILES = {
         "max_number": 50,
         "max_star": 12,
     },
-    "eurobillion": {
-        "numbers_to_pick": 5,
-        "stars_to_pick": 2,
-        "max_number": 50,
-        "max_star": 12,
-    },
 }
 
 app = FastAPI(title="EuroMillions Generator")
@@ -81,7 +75,6 @@ def homepage() -> Dict[str, object]:
         "games": [
             {"name": "EUROMILLION", "description": "Tirages principaux européens"},
             {"name": "EURODREAM", "description": "Variation exploratoire"},
-            {"name": "EUROBILLION", "description": "Extension futuriste"},
         ],
         "disclaimer": (
             "Ce générateur est fourni à titre ludique : il illustre des estimations sans aucune garantie de gain "

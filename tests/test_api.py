@@ -23,7 +23,6 @@ def test_homepage_lists_games_and_disclaimer():
     assert {game["name"] for game in data.get("games", [])} == {
         "EUROMILLION",
         "EURODREAM",
-        "EUROBILLION",
     }
     disclaimer = data.get("disclaimer", "").lower()
     assert "ludique" in disclaimer
@@ -70,7 +69,7 @@ def test_fibo_mcc_spectre_and_meta_ia_routes():
 
 
 def test_alternate_game_payloads():
-    for game in ["eurodream", "eurobillion", "EUROMILLION"]:
+    for game in ["eurodream", "EUROMILLION"]:
         response = client.post("/api/generate/random", json=build_payload(game=game))
         assert response.status_code == 200
         data = response.json()
