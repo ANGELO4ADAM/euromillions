@@ -21,6 +21,10 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 * `POST /api/generate/{strategie}` : lance une stratégie (ex. `frequency`, `random`) avec un historique de tirages.
 * `GET /api/health` : vérifie que le service répond.
 
+## Prototype UI (offline)
+* Ouvrir `frontend/index.html` directement dans un navigateur pour prévisualiser une landing moderne (dégradés subtils, cartes vitrée, typographie Inter/Space Grotesk).
+* Les sections clés : héros avec CTA, cartes jeux (EUROMILLION/EURODREAM), sélecteur de stratégies, insights et rappel bilingue de jeu responsable.
+
 ## Validation des entrées
 * Historique obligatoire (au moins un tirage)
 * Respect des longueurs : 5 numéros, 2 étoiles

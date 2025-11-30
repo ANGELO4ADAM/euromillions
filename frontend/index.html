@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Euro Draws Lab</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="hero">
+    <div class="badge">Labs Preview</div>
+    <h1>Euromillions Insights</h1>
+    <p class="lede">Visualisez les tendances, générez des combinaisons et comparez EUROMILLION et EURODREAM avec un tableau de bord moderne.</p>
+    <div class="cta-row">
+      <button class="btn primary">Generate smart picks</button>
+      <button class="btn ghost">View history</button>
+    </div>
+    <div class="disclaimer">
+      <strong>FR</strong> · Ce générateur est fourni à titre ludique. Aucun gain garanti.
+      <span class="dot">•</span>
+      <strong>EN</strong> · Entertainment-only generator. No winnings guaranteed.
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card highlight">
+      <div class="card-header">
+        <h2>Games</h2>
+        <span class="pill">Dual mode</span>
+      </div>
+      <div class="game-list">
+        <article class="game">
+          <div>
+            <p class="eyebrow">EUROMILLION</p>
+            <h3>Signature draws</h3>
+            <p class="muted">5 numbers · 2 stars · 50/12 range</p>
+          </div>
+          <div class="tag success">live</div>
+        </article>
+        <article class="game">
+          <div>
+            <p class="eyebrow">EURODREAM</p>
+            <h3>Experimental mode</h3>
+            <p class="muted">5 numbers · 2 stars · 50/12 range</p>
+          </div>
+          <div class="tag neutral">beta</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Strategy picker</h2>
+        <span class="pill soft">ML-ready</span>
+      </div>
+      <ul class="list">
+        <li>
+          <div>
+            <p class="eyebrow">Frequency</p>
+            <p class="muted">Choisit les numéros les plus fréquents + repli si peu de données.</p>
+          </div>
+          <button class="chip">Run</button>
+        </li>
+        <li>
+          <div>
+            <p class="eyebrow">Random</p>
+            <p class="muted">Tirage aléatoire trié dans les bornes du jeu.</p>
+          </div>
+          <button class="chip">Run</button>
+        </li>
+        <li>
+          <div>
+            <p class="eyebrow">Custom</p>
+            <p class="muted">Plug your model: API ready with /api/generate/&lt;strategie&gt;.</p>
+          </div>
+          <button class="chip hollow">Connect</button>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Latest insights</h2>
+        <span class="pill soft">In-context</span>
+      </div>
+      <div class="insights">
+        <div>
+          <p class="eyebrow">Next-up numbers</p>
+          <p class="figure">12 · 18 · 27 · 31 · 42</p>
+          <p class="muted">Confidence 72% · sliding window 20 draws</p>
+        </div>
+        <div>
+          <p class="eyebrow">Stars</p>
+          <p class="figure">3 · 11</p>
+          <p class="muted">Gap-weighted prediction</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Responsible play</h2>
+        <span class="pill soft">Safety</span>
+      </div>
+      <div class="responsible">
+        <p>FR · Jouez de manière responsable, fixez des limites et ne misez jamais plus que ce que vous pouvez vous permettre de perdre.</p>
+        <p>EN · Play responsibly, set limits, and never stake more than you can afford to lose.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
