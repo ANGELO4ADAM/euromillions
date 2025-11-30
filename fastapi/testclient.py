@@ -35,7 +35,13 @@ class TestClient:
             pass
         return payload
 
-    def _call(self, method: str, path: str, json: Dict[str, Any] | None = None) -> Response:
+    def _call(
+        self,
+        method: str,
+        path: str,
+        json: Dict[str, Any] | None = None,
+        params: Dict[str, Any] | None = None,
+    ) -> Response:
         try:
             func, path_params = self.app.resolve(method, path)
             sig = inspect.signature(func)
@@ -43,6 +49,8 @@ class TestClient:
             for name, param in sig.parameters.items():
                 if name in path_params:
                     kwargs[name] = path_params[name]
+                elif params and name in params:
+                    kwargs[name] = params[name]
                 else:
                     kwargs[name] = self._build_body_arg(func, param, json)
             result = func(**kwargs)
@@ -53,8 +61,8 @@ class TestClient:
             content = {"detail": exc.detail}
         return Response(status_code=status_code, content=content)
 
-    def post(self, path: str, json: Dict[str, Any] | None = None) -> Response:
-        return self._call("POST", path, json)
+    def post(self, path: str, json: Dict[str, Any] | None = None, params: Dict[str, Any] | None = None) -> Response:
+        return self._call("POST", path, json, params)
 
-    def get(self, path: str) -> Response:
-        return self._call("GET", path)
+    def get(self, path: str, params: Dict[str, Any] | None = None) -> Response:
+        return self._call("GET", path, params=params)

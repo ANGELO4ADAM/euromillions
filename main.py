@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Dict, List
 
 from fastapi import FastAPI, HTTPException
@@ -14,6 +15,10 @@ from preparateur_donnees import prepare_features
 class Draw(BaseModel):
     numbers: List[int] = Field(default_factory=list, description="Numéros du tirage")
     stars: List[int] = Field(default_factory=list, description="Étoiles du tirage")
+    draw_date: str | None = Field(
+        default=None,
+        description="Date du tirage au format ISO (YYYY-MM-DD) pour filtrer par jour.",
+    )
 
 
 class GenerateRequest(BaseModel):
@@ -125,6 +130,11 @@ def _validate_draw(draw: Draw, game_profile: Dict) -> None:
         raise HTTPException(status_code=422, detail="Tirage invalide : numéro hors plage.")
     if not all(1 <= s <= game_profile["max_star"] for s in stars):
         raise HTTPException(status_code=422, detail="Tirage invalide : étoile hors plage.")
+    if draw.draw_date:
+        try:
+            date.fromisoformat(draw.draw_date)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Date de tirage invalide : format attendu YYYY-MM-DD.")
 
 
 def _validate_history(draws: List[Draw] | List[Dict], game_profile: Dict) -> None:
@@ -136,7 +146,61 @@ def _validate_history(draws: List[Draw] | List[Dict], game_profile: Dict) -> Non
 
 
 def _normalize_draws(draws: List[Draw] | List[Dict]) -> List[Dict[str, object]]:
-    return [draw.model_dump() if hasattr(draw, "model_dump") else draw for draw in draws]
+    normalized = []
+    for draw in draws:
+        draw_dict = draw.model_dump() if hasattr(draw, "model_dump") else dict(draw)
+        if draw_dict.get("draw_date"):
+            draw_dict["draw_date"] = date.fromisoformat(str(draw_dict["draw_date"])).isoformat()
+        else:
+            draw_dict.pop("draw_date", None)
+        normalized.append(draw_dict)
+    return normalized
+
+
+def _parse_weekday(value: str) -> int:
+    try:
+        weekday = int(value)
+    except (TypeError, ValueError):
+        normalized = value.strip().lower()
+        mapping = {
+            "monday": 1,
+            "mon": 1,
+            "lundi": 1,
+            "tuesday": 2,
+            "tue": 2,
+            "mardi": 2,
+            "wednesday": 3,
+            "wed": 3,
+            "mercredi": 3,
+            "thursday": 4,
+            "thu": 4,
+            "jeudi": 4,
+            "friday": 5,
+            "fri": 5,
+            "vendredi": 5,
+            "saturday": 6,
+            "sat": 6,
+            "samedi": 6,
+            "sunday": 7,
+            "sun": 7,
+            "dimanche": 7,
+        }
+        weekday = mapping.get(normalized, 0)
+    if weekday < 1 or weekday > 7:
+        raise HTTPException(
+            status_code=422, detail="Jour invalide : utilisez 1-7 ou un nom de jour (en/fr)."
+        )
+    return weekday
+
+
+def _weekday_for_draw(draw: Dict[str, object]) -> int | None:
+    draw_date = draw.get("draw_date") if isinstance(draw, dict) else None
+    if not draw_date:
+        return None
+    try:
+        return date.fromisoformat(str(draw_date)).isoweekday()
+    except ValueError:
+        return None
 
 
 @app.post("/api/generate/{strategie}", response_model=StrategyResponse)
@@ -164,7 +228,13 @@ def ingest_manual_draws(payload: ManualDrawImport) -> Dict[str, object]:
 
 
 @app.get("/api/admin/manual-draws/{game}")
-def list_manual_draws(game: str) -> Dict[str, object]:
+def list_manual_draws(game: str, weekday: str | None = None) -> Dict[str, object]:
     get_game_profile(game)
     draws = get_draws(game)
+    if weekday is not None:
+        target_weekday = _parse_weekday(weekday)
+        draws = [
+            d for d in draws if (found := _weekday_for_draw(d)) is not None and found == target_weekday
+        ]
+
     return {"game": game.lower(), "stored": len(draws), "draws": draws}
