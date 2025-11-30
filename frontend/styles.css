@@ -9,6 +9,7 @@
   --muted: #9fa8c3;
   --accent: #7bdcff;
   --accent-strong: #8f7cff;
+  --danger: #ff6b6b;
   --success: #73d673;
   --shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
   --radius: 18px;
@@ -80,6 +81,11 @@ body {
   margin: 16px 0 12px;
 }
 
+.cta-row.wrap {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
 .btn {
   border: 0;
   border-radius: 14px;
@@ -99,6 +105,11 @@ body {
 .btn.ghost {
   background: transparent;
   border: 1px solid var(--border);
+}
+
+.btn.danger {
+  background: linear-gradient(135deg, rgba(255, 118, 118, 0.9), rgba(255, 86, 86, 0.8));
+  border: 1px solid rgba(255, 118, 118, 0.5);
 }
 
 .btn[disabled] {
@@ -296,7 +307,10 @@ body {
 
 .live select,
 .live textarea,
-.live input[type="url"] {
+.live input[type="url"],
+.admin select,
+.admin textarea,
+.admin input[type="text"] {
   width: 100%;
   margin-top: 6px;
   background: rgba(255, 255, 255, 0.05);
@@ -310,7 +324,10 @@ body {
 
 .live select:focus,
 .live textarea:focus,
-.live input[type="url"]:focus {
+.live input[type="url"]:focus,
+.admin select:focus,
+.admin textarea:focus,
+.admin input[type="text"]:focus {
   outline: none;
   border-color: rgba(123, 220, 255, 0.4);
   box-shadow: 0 0 0 3px rgba(123, 220, 255, 0.18);
@@ -358,6 +375,10 @@ body {
   border-color: rgba(255, 110, 110, 0.4);
 }
 
+.card.admin .status {
+  margin-top: 8px;
+}
+
 .result-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -396,6 +417,13 @@ pre {
   color: var(--muted);
   overflow-x: auto;
   font-size: 12px;
+}
+
+.admin-output {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  margin-top: 10px;
+  min-height: 80px;
 }
 
 @media (max-width: 640px) {

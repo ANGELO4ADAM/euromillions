@@ -66,3 +66,6 @@ class TestClient:
 
     def get(self, path: str, params: Dict[str, Any] | None = None) -> Response:
         return self._call("GET", path, params=params)
+
+    def delete(self, path: str, params: Dict[str, Any] | None = None) -> Response:
+        return self._call("DELETE", path, params=params)

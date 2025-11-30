@@ -51,6 +51,12 @@ class FastAPI:
 
         return decorator
 
+    def delete(self, path: str, **_: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+            return self._register("DELETE", path, func)
+
+        return decorator
+
     def add_middleware(self, middleware_class: Any, **options: Any) -> None:
         self.middleware.append((middleware_class, options))
 

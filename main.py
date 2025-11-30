@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 import ml_strategies
-from data_store import append_draws, get_draws
+from data_store import clear_draws, get_draws, persist_draws
 from preparateur_donnees import prepare_features
 
 
@@ -35,6 +35,10 @@ class GenerateRequest(BaseModel):
 class ManualDrawImport(BaseModel):
     game: str = Field(default="euromillion", description="Jeu ciblé")
     draws: List[Draw] = Field(default_factory=list, description="Tirages à ingérer")
+    replace: bool = Field(
+        default=False,
+        description="Si vrai, remplace l'historique manuel existant par les tirages fournis.",
+    )
 
 
 class StrategyResponse(BaseModel):
@@ -238,8 +242,14 @@ def generate(strategie: str, payload: GenerateRequest) -> StrategyResponse:
 def ingest_manual_draws(payload: ManualDrawImport) -> Dict[str, object]:
     game_profile = get_game_profile(payload.game)
     _validate_history(payload.draws, game_profile)
-    stored_draws = append_draws(payload.game, _normalize_draws(payload.draws))
-    return {"game": payload.game.lower(), "stored": len(stored_draws)}
+    stored_draws = persist_draws(
+        payload.game, _normalize_draws(payload.draws), replace=payload.replace
+    )
+    return {
+        "game": payload.game.lower(),
+        "stored": len(stored_draws),
+        "mode": "replace" if payload.replace else "append",
+    }
 
 
 @app.get("/api/admin/manual-draws/{game}")
@@ -253,3 +263,10 @@ def list_manual_draws(game: str, weekday: str | None = None) -> Dict[str, object
         ]
 
     return {"game": game.lower(), "stored": len(draws), "draws": draws}
+
+
+@app.delete("/api/admin/manual-draws/{game}")
+def purge_manual_draws(game: str) -> Dict[str, object]:
+    get_game_profile(game)
+    deleted = clear_draws(game)
+    return {"game": game.lower(), "cleared": deleted, "stored": 0}

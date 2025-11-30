@@ -127,6 +127,46 @@
       <div class="result-grid" id="result" aria-live="polite"></div>
     </section>
 
+    <section class="card admin">
+      <div class="card-header">
+        <h2>Admin fallback</h2>
+        <span class="pill soft">Manual store</span>
+      </div>
+      <p class="muted minor">Use when scraping fails: import validated draws, filter by weekday, replace or purge the store.</p>
+      <div class="form-grid">
+        <label>
+          <span class="eyebrow">Game</span>
+          <select id="admin-game">
+            <option value="euromillion" selected>EUROMILLION</option>
+            <option value="eurodream">EURODREAM</option>
+          </select>
+        </label>
+        <label>
+          <span class="eyebrow">Weekday filter</span>
+          <input id="admin-weekday" type="text" placeholder="tuesday / vendredi / 5" />
+          <p class="muted minor">Optionnel pour lister : 1-7 ou nom du jour (en/fr).</p>
+        </label>
+      </div>
+      <label class="stack">
+        <span class="eyebrow">Manual draws (JSON)</span>
+        <textarea id="admin-draws" rows="6"></textarea>
+      </label>
+      <label class="inline-option">
+        <input id="admin-replace" type="checkbox" />
+        <div>
+          <span class="eyebrow">Replace instead of append</span>
+          <p class="muted minor">Écrase l'historique manuel du jeu sélectionné.</p>
+        </div>
+      </label>
+      <div class="cta-row gap wrap">
+        <button class="btn primary" id="admin-import">Save manual draws</button>
+        <button class="btn ghost" id="admin-list">List stored draws</button>
+        <button class="btn danger" id="admin-clear">Purge manual store</button>
+      </div>
+      <div class="status" id="admin-status">Admin ready — import, list or purge manual draws.</div>
+      <pre class="admin-output" id="admin-output"></pre>
+    </section>
+
     <section class="card">
       <div class="card-header">
         <h2>Latest insights</h2>
@@ -164,6 +204,12 @@
     const gameField = document.getElementById("game");
     const strategyField = document.getElementById("strategie");
     const useManualField = document.getElementById("use-manual");
+    const adminDrawsField = document.getElementById("admin-draws");
+    const adminGameField = document.getElementById("admin-game");
+    const adminWeekdayField = document.getElementById("admin-weekday");
+    const adminReplaceField = document.getElementById("admin-replace");
+    const adminStatus = document.getElementById("admin-status");
+    const adminOutput = document.getElementById("admin-output");
 
     const samplePayload = {
       draws: [
@@ -176,6 +222,12 @@
     };
 
     historyField.value = JSON.stringify(samplePayload, null, 2);
+
+    const adminSample = [
+      { numbers: [1, 14, 23, 36, 45], stars: [2, 7], draw_date: "2024-06-18" },
+      { numbers: [3, 17, 28, 41, 47], stars: [5, 12], draw_date: "2024-06-21" },
+    ];
+    adminDrawsField.value = JSON.stringify(adminSample, null, 2);
 
     const apiField = document.getElementById("api-base");
     const defaultBase = window.location.origin && window.location.origin !== "null"
@@ -254,6 +306,93 @@
         runBtn.disabled = false;
         runBtn.textContent = "Call API";
       }
+    });
+
+    async function adminRequest(path, options = {}) {
+      const base = apiField.value.trim() || defaultBase;
+      const response = await fetch(`${base}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+      });
+      let body;
+      try {
+        body = await response.json();
+      } catch (err) {
+        body = { detail: "Réponse invalide" };
+      }
+      return { response, body };
+    }
+
+    function setAdminStatus(text, isError = false) {
+      adminStatus.textContent = text;
+      adminStatus.classList.toggle("error", isError);
+    }
+
+    document.getElementById("admin-import").addEventListener("click", async () => {
+      let draws;
+      try {
+        const parsed = JSON.parse(adminDrawsField.value || "[]");
+        draws = Array.isArray(parsed) ? parsed : parsed.draws;
+      } catch (err) {
+        setAdminStatus("Payload invalide : fournissez une liste JSON de tirages.", true);
+        return;
+      }
+
+      if (!Array.isArray(draws)) {
+        setAdminStatus("Attendu : un tableau de tirages (numbers/stars).", true);
+        return;
+      }
+
+      setAdminStatus("Import en cours...");
+      const { response, body } = await adminRequest("/api/admin/manual-draws", {
+        method: "POST",
+        body: JSON.stringify({
+          game: adminGameField.value,
+          replace: adminReplaceField.checked,
+          draws,
+        }),
+      });
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec de l'import"}`, true);
+        return;
+      }
+
+      setAdminStatus(`Import réussi (${body.mode}) : ${body.stored} tirage(s) stocké(s).`);
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-list").addEventListener("click", async () => {
+      setAdminStatus("Listing...");
+      const weekday = adminWeekdayField.value.trim();
+      const query = weekday ? `?weekday=${encodeURIComponent(weekday)}` : "";
+      const { response, body } = await adminRequest(
+        `/api/admin/manual-draws/${adminGameField.value}${query}`
+      );
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du listing"}`, true);
+        return;
+      }
+
+      setAdminStatus(`Listing : ${body.stored} tirage(s).`);
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-clear").addEventListener("click", async () => {
+      setAdminStatus("Purge en cours...");
+      const { response, body } = await adminRequest(
+        `/api/admin/manual-draws/${adminGameField.value}`,
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec de la purge"}`, true);
+        return;
+      }
+
+      setAdminStatus(body.cleared ? "Purge effectuée." : "Aucun tirage à purger.");
+      adminOutput.textContent = JSON.stringify(body, null, 2);
     });
   </script>
 </body>

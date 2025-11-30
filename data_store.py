@@ -46,6 +46,30 @@ def append_draws(game: str, draws: List[Dict[str, object]]) -> List[Dict[str, ob
     return game_draws
 
 
+def persist_draws(game: str, draws: List[Dict[str, object]], *, replace: bool = False) -> List[Dict[str, object]]:
+    """Append or replace draws for the given game and persist to disk."""
+
+    store = load_store()
+    normalized_key = game.lower()
+    if replace:
+        store[normalized_key] = list(draws)
+    else:
+        store[normalized_key] = store.get(normalized_key, []) + list(draws)
+    save_store(store)
+    return store[normalized_key]
+
+
+def clear_draws(game: str) -> bool:
+    """Remove all draws for a given game. Returns True if something was deleted."""
+
+    store = load_store()
+    normalized_key = game.lower()
+    deleted = normalized_key in store
+    store.pop(normalized_key, None)
+    save_store(store)
+    return deleted
+
+
 def get_draws(game: str) -> List[Dict[str, object]]:
     store = load_store()
     return store.get(game.lower(), [])

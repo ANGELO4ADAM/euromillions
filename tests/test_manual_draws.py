@@ -21,7 +21,7 @@ def test_manual_draw_import_and_listing(monkeypatch, tmp_path):
 
     response = client.post("/api/admin/manual-draws", json=payload)
     assert response.status_code == 200
-    assert response.json() == {"game": "euromillion", "stored": 2}
+    assert response.json() == {"game": "euromillion", "stored": 2, "mode": "append"}
 
     # Verify persistence on disk
     saved_content = json.loads(Path(manual_store).read_text(encoding="utf-8"))
@@ -41,6 +41,53 @@ def test_manual_draw_import_and_listing(monkeypatch, tmp_path):
     tuesday_data = tuesday_listing.json()
     assert tuesday_data["stored"] == 1
     assert tuesday_data["draws"][0]["draw_date"] == "2024-06-18"
+
+
+def test_manual_draw_import_can_replace(monkeypatch, tmp_path):
+    manual_store = tmp_path / "manual_draws.json"
+    monkeypatch.setenv("MANUAL_DRAWS_PATH", str(manual_store))
+    client = TestClient(app)
+
+    payload = {
+        "game": "EUROMILLION",
+        "draws": [{"numbers": [1, 2, 3, 4, 5], "stars": [1, 2]}],
+    }
+    assert client.post("/api/admin/manual-draws", json=payload).status_code == 200
+
+    replacement = {
+        "game": "EUROMILLION",
+        "replace": True,
+        "draws": [{"numbers": [6, 7, 8, 9, 10], "stars": [3, 4]}],
+    }
+    resp = client.post("/api/admin/manual-draws", json=replacement)
+    assert resp.status_code == 200
+    assert resp.json() == {"game": "euromillion", "stored": 1, "mode": "replace"}
+
+    listing = client.get("/api/admin/manual-draws/euromillion")
+    assert listing.status_code == 200
+    data = listing.json()
+    assert data["stored"] == 1
+    assert data["draws"][0]["numbers"] == [6, 7, 8, 9, 10]
+
+
+def test_admin_can_clear_draws(monkeypatch, tmp_path):
+    manual_store = tmp_path / "manual_draws.json"
+    monkeypatch.setenv("MANUAL_DRAWS_PATH", str(manual_store))
+    client = TestClient(app)
+
+    payload = {
+        "game": "EUROMILLION",
+        "draws": [{"numbers": [1, 2, 3, 4, 5], "stars": [1, 2]}],
+    }
+    client.post("/api/admin/manual-draws", json=payload)
+
+    purge = client.delete("/api/admin/manual-draws/euromillion")
+    assert purge.status_code == 200
+    assert purge.json() == {"game": "euromillion", "cleared": True, "stored": 0}
+
+    listing = client.get("/api/admin/manual-draws/euromillion")
+    assert listing.status_code == 200
+    assert listing.json()["stored"] == 0
 
 
 def test_manual_draw_import_rejects_invalid_game(monkeypatch, tmp_path):
