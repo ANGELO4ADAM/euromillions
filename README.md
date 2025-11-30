@@ -22,13 +22,16 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
        {"numbers": [1, 2, 3, 4, 5], "stars": [1, 2]},
        {"numbers": [2, 3, 4, 5, 6], "stars": [2, 3]}
      ],
-     "game": "eurodream"
+     "game": "eurodream",
+     "use_manual_draws": false
    }
    ```
 4. Les réponses incluent `numbers`, `stars`, `confidence_score`, `method_used`, `explanation`, `features`.
 5. Si le scraping échoue, un administrateur peut ajouter des tirages manuellement via `POST /api/admin/manual-draws` (voir ci-dessous)
    puis les consulter via `GET /api/admin/manual-draws/{game}`. Chaque tirage peut embarquer un champ optionnel `draw_date` (YYYY-MM-DD)
    pour permettre des filtres par jour de la semaine. Le chemin du fichier stocké peut être ajusté avec `MANUAL_DRAWS_PATH`.
+6. Le champ `use_manual_draws` (bool) permet, côté génération, d'inclure automatiquement l'historique persistant importé par l'administrateur
+   pour le jeu ciblé. Si aucune donnée n'est disponible et que `draws` est vide, l'appel renverra un 404 explicite.
 
 ## Routes disponibles hors-ligne
 * `GET /` : page d'accueil listant EUROMILLION et EURODREAM, avec un rappel bilingue (fr/en) que le générateur est uniquement ludique, ne garantit aucun gain et invite à jouer de manière responsable.

@@ -24,6 +24,12 @@ class Draw(BaseModel):
 class GenerateRequest(BaseModel):
     draws: List[Draw] = Field(default_factory=list, description="Historique des tirages")
     game: str = Field(default="euromillion", description="Nom du jeu ciblé")
+    use_manual_draws: bool = Field(
+        default=False,
+        description=(
+            "Si vrai, utilise l'historique manuel persisté pour le jeu ciblé et fusionne avec le payload fourni."
+        ),
+    )
 
 
 class ManualDrawImport(BaseModel):
@@ -211,8 +217,17 @@ def generate(strategie: str, payload: GenerateRequest) -> StrategyResponse:
 
     game_profile = get_game_profile(payload.game)
 
-    _validate_history(payload.draws, game_profile)
-    draw_history = _normalize_draws(payload.draws)
+    manual_draws: List[Dict[str, object]] = []
+    if payload.use_manual_draws:
+        manual_draws = get_draws(payload.game)
+        if not manual_draws and not payload.draws:
+            raise HTTPException(
+                status_code=404,
+                detail="Aucun tirage manuel disponible pour ce jeu : fournissez un historique ou désactivez use_manual_draws.",
+            )
+
+    draw_history = manual_draws + _normalize_draws(payload.draws)
+    _validate_history(draw_history, game_profile)
     features = prepare_features(game_profile, draw_history)
     result = strategy_callable(game_profile, draw_history)
 

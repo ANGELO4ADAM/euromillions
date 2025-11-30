@@ -104,6 +104,45 @@ def test_invalid_draw_rejected():
     assert "Tirage invalide" in response.json()["detail"]
 
 
+def test_generate_can_use_manual_store(monkeypatch, tmp_path):
+    manual_store = tmp_path / "manual_draws.json"
+    monkeypatch.setenv("MANUAL_DRAWS_PATH", str(manual_store))
+    local_client = TestClient(app)
+
+    # Ingestion manuelle préalable
+    ingest_payload = {
+        "game": "eurodream",
+        "draws": [
+            {"numbers": [1, 2, 3, 4, 5], "stars": [1, 2], "draw_date": "2024-06-18"},
+            {"numbers": [6, 7, 8, 9, 10], "stars": [3, 4], "draw_date": "2024-06-21"},
+        ],
+    }
+    ingest = local_client.post("/api/admin/manual-draws", json=ingest_payload)
+    assert ingest.status_code == 200
+
+    # Génération en s'appuyant uniquement sur le store manuel
+    response = local_client.post(
+        "/api/generate/random",
+        json={"draws": [], "game": "eurodream", "use_manual_draws": True},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["numbers"]) == GAME_PROFILES["eurodream"]["numbers_to_pick"]
+    assert len(data["stars"]) == GAME_PROFILES["eurodream"]["stars_to_pick"]
+
+
+def test_generate_rejects_manual_flag_without_history(monkeypatch, tmp_path):
+    monkeypatch.setenv("MANUAL_DRAWS_PATH", str(tmp_path / "manual_draws.json"))
+    local_client = TestClient(app)
+
+    response = local_client.post(
+        "/api/generate/random",
+        json={"draws": [], "game": "euromillion", "use_manual_draws": True},
+    )
+    assert response.status_code == 404
+    assert "Aucun tirage manuel" in response.json()["detail"]
+
+
 def test_health_exposes_games_and_strategies():
     response = client.get("/api/health")
     assert response.status_code == 200

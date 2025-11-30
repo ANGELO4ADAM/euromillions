@@ -109,6 +109,13 @@
           <p class="muted minor">Défaut : origine actuelle ou localhost si ouvert en file://</p>
         </label>
       </div>
+      <label class="inline-option">
+        <input id="use-manual" type="checkbox" />
+        <div>
+          <span class="eyebrow">Manual fallback</span>
+          <p class="muted minor">Merge admin-imported draws with the payload. If none exist and history is empty, the API returns 404.</p>
+        </div>
+      </label>
       <label class="stack">
         <span class="eyebrow">History (JSON payload)</span>
         <textarea id="history" rows="6"></textarea>
@@ -156,6 +163,7 @@
     const resultEl = document.getElementById("result");
     const gameField = document.getElementById("game");
     const strategyField = document.getElementById("strategie");
+    const useManualField = document.getElementById("use-manual");
 
     const samplePayload = {
       draws: [
@@ -164,6 +172,7 @@
         { numbers: [1, 7, 21, 28, 49], stars: [3, 6] },
       ],
       game: "euromillion",
+      use_manual_draws: false,
     };
 
     historyField.value = JSON.stringify(samplePayload, null, 2);
@@ -179,6 +188,7 @@
       try {
         payload = JSON.parse(historyField.value || "{}");
         payload.game = gameField.value;
+        payload.use_manual_draws = useManualField.checked;
       } catch (err) {
         statusEl.textContent = "Payload invalide : veuillez fournir un JSON valide.";
         statusEl.classList.add("error");

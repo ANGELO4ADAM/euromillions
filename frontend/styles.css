@@ -323,6 +323,21 @@ body {
   margin-bottom: 8px;
 }
 
+.inline-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.inline-option input[type="checkbox"] {
+  margin-top: 4px;
+  accent-color: #7bdcff;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
