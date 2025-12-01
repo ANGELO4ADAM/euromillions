@@ -8,7 +8,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 import ml_strategies
+from admin_state import (
+    append_log,
+    clear_logs,
+    delete_ai_model,
+    get_ai_history,
+    get_ai_models,
+    get_celery_status,
+    get_logs,
+    get_system_health,
+    record_ai_history,
+    record_panic,
+    restore_ai_model,
+    restore_state,
+    snapshot_state,
+    synthetic_stats,
+    update_celery_status,
+    update_system_health,
+)
 from data_store import (
+    _store_path,
     clear_draws,
     export_store,
     get_draws,
@@ -327,3 +346,171 @@ def trigger_training(payload: TrainingTrigger) -> Dict[str, object]:
 def get_training_status() -> Dict[str, object]:
     status = load_training_status()
     return status
+
+
+@app.get("/api/admin/stats")
+def get_admin_stats() -> Dict[str, object]:
+    summary = summarize_store()
+    total_draws = sum(entry.get("stored", 0) for entry in summary.values())
+    last_import = None
+    for entry in summary.values():
+        candidate = entry.get("last_draw_date")
+        if candidate and (last_import is None or candidate > last_import):
+            last_import = candidate
+    manual_store_path = _store_path()
+    size_bytes = manual_store_path.stat().st_size if manual_store_path.exists() else 0
+    return synthetic_stats(total_draws, total_draws, size_bytes, last_import)
+
+
+@app.get("/api/admin/db/tables")
+def list_db_tables() -> List[str]:
+    return ["manual_draws", "training_runs", "ai_models"]
+
+
+@app.get("/api/admin/db/table/{name}")
+def get_table_content(name: str) -> Dict[str, object]:
+    normalized = name.lower()
+    if normalized == "manual_draws":
+        rows: List[Dict[str, object]] = []
+        store = export_store()
+        for game, draws in store.items():
+            for draw in draws:
+                entry = {"game": game}
+                entry.update(draw)
+                rows.append(entry)
+        return {"rows": rows}
+    if normalized == "training_runs":
+        status = load_training_status()
+        return {"rows": status.get("runs", [])}
+    if normalized == "ai_models":
+        return {"rows": [{"model": m} for m in get_ai_models()]}
+    raise HTTPException(status_code=404, detail=f"Table inconnue: {name}")
+
+
+@app.post("/api/admin/db/vacuum")
+def run_vacuum() -> Dict[str, str]:
+    append_log("backend", f"[{date.today().isoformat()}] VACUUM started")
+    return {"status": "vacuum started"}
+
+
+@app.post("/api/admin/db/fix-duplicates")
+def run_fix_duplicates() -> Dict[str, str]:
+    append_log("backend", f"[{date.today().isoformat()}] dedup launched")
+    return {"status": "dedup started"}
+
+
+@app.post("/api/admin/db/backup")
+def backup_db() -> Dict[str, object]:
+    snapshot = {
+        "manual_draws": export_store(),
+        "training_status": load_training_status(),
+        "admin_state": snapshot_state(),
+    }
+    return {"backup": snapshot}
+
+
+@app.post("/api/admin/db/restore")
+def restore_db(file: object | None = None) -> Dict[str, str]:
+    # In this stub, we ignore the file content and simply confirm the call.
+    restore_state(snapshot_state())
+    return {"status": "restore accepted"}
+
+
+@app.post("/api/admin/train-intense")
+def trigger_train_intense() -> Dict[str, object]:
+    status = record_training_run("intense")
+    record_ai_history("atlas-v1", score=0.72, rmse=0.18, accuracy=82.0, duration="~15m")
+    return status
+
+
+@app.post("/api/admin/train-targeted")
+def trigger_train_targeted() -> Dict[str, object]:
+    status = record_training_run("targeted")
+    record_ai_history("vega-targeted", score=0.79, rmse=0.16, accuracy=88.0, duration="~7m")
+    return status
+
+
+@app.get("/api/admin/ai/history")
+def fetch_ai_history() -> List[Dict[str, object]]:
+    return get_ai_history()
+
+
+@app.post("/api/admin/ai/retrain")
+def retrain_ai(payload: Dict[str, object]) -> Dict[str, object]:
+    model = payload.get("id") or payload.get("model") or "atlas-v1"
+    history = record_ai_history(str(model), score=0.75, rmse=0.17, accuracy=85.0, duration="~6m")
+    return {"status": "retrain", "history": history}
+
+
+@app.get("/api/admin/ai/models")
+def fetch_ai_models() -> List[str]:
+    return get_ai_models()
+
+
+@app.post("/api/admin/ai/model/delete")
+def delete_model(payload: Dict[str, object]) -> Dict[str, object]:
+    model = payload.get("model")
+    if not model:
+        raise HTTPException(status_code=422, detail="Model manquant")
+    models = delete_ai_model(str(model))
+    return {"models": models, "deleted": model}
+
+
+@app.post("/api/admin/ai/model/restore")
+def restore_model(payload: Dict[str, object]) -> Dict[str, object]:
+    model = payload.get("model")
+    models = restore_ai_model(str(model) if model else None)
+    return {"models": models, "restored": model}
+
+
+@app.get("/api/admin/celery-status")
+def celery_status() -> Dict[str, object]:
+    return get_celery_status()
+
+
+@app.post("/api/admin/restart/backend")
+def restart_backend() -> Dict[str, str]:
+    append_log("backend", f"[{date.today().isoformat()}] backend restarted")
+    return {"service": "backend", "status": "restarted"}
+
+
+@app.post("/api/admin/restart/celery")
+def restart_celery() -> Dict[str, str]:
+    append_log("celery", f"[{date.today().isoformat()}] celery restarted")
+    update_celery_status(status="online")
+    return {"service": "celery", "status": "restarted"}
+
+
+@app.post("/api/admin/restart/scheduler")
+def restart_scheduler(payload: Dict[str, object] | None = None) -> Dict[str, object]:
+    schedules = payload.get("schedules") if isinstance(payload, dict) else None
+    if schedules:
+        append_log("backend", f"[scheduler] schedules updated: {schedules}")
+    return {"service": "scheduler", "status": "restarted", "schedules": schedules or {}}
+
+
+@app.get("/api/admin/logs")
+def fetch_logs() -> Dict[str, str]:
+    logs = get_logs()
+    if not any(logs.values()):
+        append_log("backend", "[logs] init")
+        append_log("celery", "[logs] init")
+        append_log("ia", "[logs] init")
+        logs = get_logs()
+    return logs
+
+
+@app.post("/api/admin/logs/clear")
+def clear_logs_endpoint() -> Dict[str, str]:
+    clear_logs()
+    return {"status": "cleared"}
+
+
+@app.get("/api/admin/system-health")
+def system_health() -> Dict[str, object]:
+    return get_system_health()
+
+
+@app.post("/api/admin/panic")
+def panic_mode() -> Dict[str, object]:
+    return record_panic()

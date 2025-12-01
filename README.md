@@ -49,6 +49,17 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 * `GET /api/admin/manual-draws/{game}` : retourne les tirages manuellement saisis pour le jeu ciblé, avec un filtre optionnel `weekday` (1-7 ou nom du jour en fr/en).
 * `DELETE /api/admin/manual-draws/{game}` : supprime tout l'historique manuel pour le jeu ciblé.
 * `POST /api/admin/train` / `GET /api/admin/train` : stub de déclenchement et de suivi de training (manual ou auto), utile pour tracer les runs et les backups d'entrée.
+* Console admin (stubs complets pour le dashboard Vue) :
+  * `GET /api/admin/stats` : métriques synthétiques (tirages, taille du store, dernier import, santé DB)
+  * `GET /api/admin/db/tables` / `GET /api/admin/db/table/{name}` : exploration des tables virtuelles (`manual_draws`, `training_runs`, `ai_models`)
+  * `POST /api/admin/db/vacuum` / `POST /api/admin/db/fix-duplicates` : actions de maintenance simulées (loguées)
+  * `POST /api/admin/db/backup` / `POST /api/admin/db/restore` : snapshot/restauration du store et des états admin
+  * `POST /api/admin/train-intense` / `POST /api/admin/train-targeted` : modes d'entraînement supplémentaires, alimentant l'historique IA
+  * `GET /api/admin/ai/history` / `POST /api/admin/ai/retrain` : historique des runs IA et relance ciblée
+  * `GET /api/admin/ai/models` / `POST /api/admin/ai/model/delete` / `POST /api/admin/ai/model/restore` : gestion des modèles disponibles
+  * `GET /api/admin/celery-status` / `POST /api/admin/restart/{backend|celery|scheduler}` : monitoring et redémarrage de services
+  * `GET /api/admin/logs` / `POST /api/admin/logs/clear` : consultation/vidage des logs (backend, Celery, IA)
+  * `GET /api/admin/system-health` / `POST /api/admin/panic` : diagnostics système et mode panic (safe mode)
 * `GET /api/health` : vérifie que le service répond et expose les jeux/stratégies disponibles.
 
 ## Prototype UI (offline)
