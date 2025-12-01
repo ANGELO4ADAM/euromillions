@@ -8,123 +8,198 @@
 </head>
 <body>
   <div class="noise"></div>
-  <header class="hero">
-    <div class="badge">Labs Preview</div>
-    <h1>Euromillions Insights</h1>
-    <p class="lede">Visualisez les tendances, générez des combinaisons et comparez EUROMILLION et EURODREAM avec un tableau de bord moderne.</p>
-    <div class="cta-row">
-      <button class="btn primary">Generate smart picks</button>
-      <button class="btn ghost">View history</button>
+  <header class="hero split">
+    <div class="hero-copy">
+      <div class="badge">Labs Preview</div>
+      <h1>Euro Draws Lab</h1>
+      <p class="lede">Choisissez votre jeu, lancez le générateur et comparez les stratégies guidées par les tirages récents.</p>
+      <div class="cta-row">
+        <button class="btn primary game-entry" data-game-entry="euromillion">Entrer · EuroMillion</button>
+        <button class="btn ghost game-entry" data-game-entry="eurodream">Entrer · EuroDream</button>
+        <button class="btn link" id="cta-generator">Voir le générateur</button>
+      </div>
+      <div class="disclaimer">
+        <strong>FR</strong> · Ce générateur est fourni à titre ludique. Aucun gain garanti.
+        <span class="dot">•</span>
+        <strong>EN</strong> · Entertainment-only generator. No winnings guaranteed.
+      </div>
     </div>
-    <div class="disclaimer">
-      <strong>FR</strong> · Ce générateur est fourni à titre ludique. Aucun gain garanti.
-      <span class="dot">•</span>
-      <strong>EN</strong> · Entertainment-only generator. No winnings guaranteed.
+    <div class="hero-visual">
+      <div class="orb orb-primary"></div>
+      <div class="orb orb-secondary"></div>
+      <div class="hero-card">
+        <p class="eyebrow">Focus</p>
+        <h3>EuroMillion & EuroDream</h3>
+        <p class="muted">5 numbers · 2 stars · Validés et testés</p>
+        <div class="chips-row">
+          <span class="chip">frequency</span>
+          <span class="chip">fibo</span>
+          <span class="chip">meta_ia</span>
+        </div>
+      </div>
     </div>
   </header>
 
-  <main class="grid">
-    <section class="card highlight">
+  <main class="page">
+    <section class="card band deck" id="landing">
       <div class="card-header">
-        <h2>Games</h2>
-        <span class="pill">Dual mode</span>
+        <h2>Choisissez votre jeu</h2>
+        <span class="pill glow">Navigation</span>
       </div>
-      <div class="game-list">
-        <article class="game">
+      <div class="game-grid">
+        <article class="game-card" data-game-entry="euromillion">
           <div>
             <p class="eyebrow">EUROMILLION</p>
-            <h3>Signature draws</h3>
-            <p class="muted">5 numbers · 2 stars · 50/12 range</p>
+            <h3>5 numéros · 2 étoiles</h3>
+            <p class="muted">Tirages officiels mardi & vendredi. Portée 50 / 12.</p>
+            <div class="tags">
+              <span class="tag success">Live</span>
+              <span class="tag soft">Stratégies 6</span>
+            </div>
           </div>
-          <div class="tag success">live</div>
+          <button class="btn primary">Accéder</button>
         </article>
-        <article class="game">
+        <article class="game-card" data-game-entry="eurodream">
           <div>
             <p class="eyebrow">EURODREAM</p>
-            <h3>Experimental mode</h3>
-            <p class="muted">5 numbers · 2 stars · 50/12 range</p>
+            <h3>5 numéros · 2 étoiles</h3>
+            <p class="muted">Mode beta, mêmes bornes 50 / 12 avec validation stricte.</p>
+            <div class="tags">
+              <span class="tag neutral">Beta</span>
+              <span class="tag soft">Stratégies 6</span>
+            </div>
           </div>
-          <div class="tag neutral">beta</div>
+          <button class="btn ghost">Accéder</button>
         </article>
       </div>
     </section>
 
-    <section class="card">
-      <div class="card-header">
-        <h2>Strategy picker</h2>
-        <span class="pill soft">ML-ready</span>
-      </div>
-      <ul class="list">
-        <li>
-          <div>
-            <p class="eyebrow">Frequency</p>
-            <p class="muted">Choisit les numéros les plus fréquents + repli si peu de données.</p>
-          </div>
-          <button class="chip">Run</button>
-        </li>
-        <li>
-          <div>
-            <p class="eyebrow">Random</p>
-            <p class="muted">Tirage aléatoire trié dans les bornes du jeu.</p>
-          </div>
-          <button class="chip">Run</button>
-        </li>
-        <li>
-          <div>
-            <p class="eyebrow">Custom</p>
-            <p class="muted">Plug your model: API ready with /api/generate/&lt;strategie&gt;.</p>
-          </div>
-          <button class="chip hollow">Connect</button>
-        </li>
-      </ul>
-    </section>
-
-    <section class="card live">
-      <div class="card-header">
-        <h2>Live generator</h2>
-        <span class="pill soft">API bridge</span>
-      </div>
-      <div class="form-grid">
-        <label>
-          <span class="eyebrow">Game</span>
-          <select id="game">
-            <option value="euromillion" selected>EUROMILLION</option>
-            <option value="eurodream">EURODREAM</option>
-          </select>
-        </label>
-        <label>
-          <span class="eyebrow">Strategy</span>
-          <select id="strategie">
-            <option value="frequency" selected>frequency</option>
-            <option value="random">random</option>
-            <option value="fibo">fibo</option>
-            <option value="mcc">mcc</option>
-            <option value="spectre">spectre</option>
-            <option value="meta_ia">meta_ia</option>
-          </select>
-        </label>
-        <label>
-          <span class="eyebrow">API base</span>
-          <input id="api-base" type="url" placeholder="http://localhost:8000" />
-          <p class="muted minor">Défaut : origine actuelle ou localhost si ouvert en file://</p>
-        </label>
-      </div>
-      <label class="inline-option">
-        <input id="use-manual" type="checkbox" />
+    <section class="card generator-card" id="generator">
+      <div class="panel-head">
         <div>
-          <span class="eyebrow">Manual fallback</span>
-          <p class="muted minor">Merge admin-imported draws with the payload. If none exist and history is empty, the API returns 404.</p>
+          <p class="eyebrow">Générateur</p>
+          <h2 id="generator-title">Interface EuroMillion</h2>
+          <p class="muted">Sélectionnez un jeu et une stratégie, envoyez vos tirages ou activez le fallback manuel.</p>
         </div>
-      </label>
-      <label class="stack">
-        <span class="eyebrow">History (JSON payload)</span>
-        <textarea id="history" rows="6"></textarea>
-      </label>
-      <div class="cta-row gap">
-        <button class="btn primary" id="run">Call API</button>
-        <div class="status" id="status">Ready — use the sample payload or paste your own draws.</div>
+        <div class="game-switch">
+          <button class="chip toggle active" data-game-entry="euromillion">EuroMillion</button>
+          <button class="chip toggle" data-game-entry="eurodream">EuroDream</button>
+        </div>
       </div>
-      <div class="result-grid" id="result" aria-live="polite"></div>
+
+      <div class="generator-shell">
+        <div class="column overview">
+          <div class="overview-card">
+            <div>
+              <p class="eyebrow">Dernier tirage officiel (exemple)</p>
+              <div class="balls-row">
+                <span class="ball">11</span><span class="ball">17</span><span class="ball">35</span><span class="ball">43</span><span class="ball">44</span>
+                <span class="ball star">3</span><span class="ball star">9</span>
+              </div>
+              <p class="muted minor">Utilisez vos propres tirages ou activez le fallback manuel pour fusionner l'historique admin.</p>
+            </div>
+            <div class="stat-block">
+              <span class="pill soft">Confidence demo</span>
+              <p class="figure">72%</p>
+            </div>
+          </div>
+
+          <div class="strategy-grid">
+            <div class="strategy-card">
+              <div>
+                <p class="eyebrow">Classique</p>
+                <h4>Frequency</h4>
+                <p class="muted minor">Priorise les numéros/étoiles les plus fréquents, avec repli.</p>
+              </div>
+              <button class="chip hollow strategy-cta" data-strategy="frequency">Générer</button>
+            </div>
+            <div class="strategy-card">
+              <div>
+                <p class="eyebrow">Exploration</p>
+                <h4>Random</h4>
+                <p class="muted minor">Tirage aléatoire trié dans les bornes du jeu.</p>
+              </div>
+              <button class="chip hollow strategy-cta" data-strategy="random">Générer</button>
+            </div>
+            <div class="strategy-card">
+              <div>
+                <p class="eyebrow">Cycles</p>
+                <h4>FIBO</h4>
+                <p class="muted minor">Fenêtres de Fibonacci inversé pour repérer les récurrences.</p>
+              </div>
+              <button class="chip hollow strategy-cta" data-strategy="fibo">Générer</button>
+            </div>
+            <div class="strategy-card">
+              <div>
+                <p class="eyebrow">Cold bias</p>
+                <h4>MCC</h4>
+                <p class="muted minor">Monte Carlo combinatoire favorisant les numéros à la traîne.</p>
+              </div>
+              <button class="chip hollow strategy-cta" data-strategy="mcc">Générer</button>
+            </div>
+            <div class="strategy-card">
+              <div>
+                <p class="eyebrow">Contraste</p>
+                <h4>SPECTRE</h4>
+                <p class="muted minor">Compare court vs long terme pour les numéros en retour.</p>
+              </div>
+              <button class="chip hollow strategy-cta" data-strategy="spectre">Générer</button>
+            </div>
+            <div class="strategy-card">
+              <div>
+                <p class="eyebrow">Consensus</p>
+                <h4>META IA</h4>
+                <p class="muted minor">Fusionne FIBO, MCC, SPECTRE pour un vote majoritaire.</p>
+              </div>
+              <button class="chip hollow strategy-cta" data-strategy="meta_ia">Générer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="column form">
+          <div class="form-grid">
+            <label>
+              <span class="eyebrow">Game</span>
+              <select id="game">
+                <option value="euromillion" selected>EUROMILLION</option>
+                <option value="eurodream">EURODREAM</option>
+              </select>
+            </label>
+            <label>
+              <span class="eyebrow">Strategy</span>
+              <select id="strategie">
+                <option value="frequency" selected>frequency</option>
+                <option value="random">random</option>
+                <option value="fibo">fibo</option>
+                <option value="mcc">mcc</option>
+                <option value="spectre">spectre</option>
+                <option value="meta_ia">meta_ia</option>
+              </select>
+            </label>
+            <label>
+              <span class="eyebrow">API base</span>
+              <input id="api-base" type="url" placeholder="http://localhost:8000" />
+              <p class="muted minor">Défaut : origine actuelle ou localhost si ouvert en file://</p>
+            </label>
+          </div>
+          <label class="inline-option">
+            <input id="use-manual" type="checkbox" />
+            <div>
+              <span class="eyebrow">Manual fallback</span>
+              <p class="muted minor">Fusionner l'historique admin avec le payload (404 si vide).</p>
+            </div>
+          </label>
+          <label class="stack">
+            <span class="eyebrow">History (JSON payload)</span>
+            <textarea id="history" rows="6"></textarea>
+          </label>
+          <div class="cta-row gap">
+            <button class="btn primary" id="run">Générer avec l'API</button>
+            <div class="status" id="status">Ready — utilisez l'exemple ou collez vos tirages.</div>
+          </div>
+          <div class="result-grid" id="result" aria-live="polite"></div>
+        </div>
+      </div>
     </section>
 
     <section class="card admin">
@@ -183,7 +258,7 @@
       <pre class="admin-output" id="admin-output"></pre>
     </section>
 
-    <section class="card">
+    <section class="card highlight">
       <div class="card-header">
         <h2>Latest insights</h2>
         <span class="pill soft">In-context</span>
@@ -199,6 +274,10 @@
           <p class="figure">3 · 11</p>
           <p class="muted">Gap-weighted prediction</p>
         </div>
+        <div>
+          <p class="eyebrow">Narrative</p>
+          <p class="muted">Synthèse des fréquences, écarts et tendances court/long terme.</p>
+        </div>
       </div>
     </section>
 
@@ -213,6 +292,7 @@
       </div>
     </section>
   </main>
+
   <script>
     const historyField = document.getElementById("history");
     const statusEl = document.getElementById("status");
@@ -228,6 +308,7 @@
     const adminOutput = document.getElementById("admin-output");
     const trainModeField = document.getElementById("train-mode");
     const trainSourceField = document.getElementById("train-source");
+    const generatorTitle = document.getElementById("generator-title");
 
     const samplePayload = {
       draws: [
@@ -252,6 +333,41 @@
       ? window.location.origin
       : "http://localhost:8000";
     apiField.placeholder = defaultBase;
+
+    function selectGame(game) {
+      gameField.value = game;
+      adminGameField.value = game;
+      generatorTitle.textContent = `Interface ${game === "euromillion" ? "EuroMillion" : "EuroDream"}`;
+      document.querySelectorAll(".chip.toggle").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.gameEntry === game);
+      });
+      document.querySelectorAll(".game-card").forEach((card) => {
+        card.classList.toggle("active", card.dataset.gameEntry === game);
+      });
+    }
+
+    document.querySelectorAll('[data-game-entry]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const game = btn.getAttribute('data-game-entry');
+        selectGame(game);
+        const generator = document.getElementById('generator');
+        generator.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    document.getElementById('cta-generator').addEventListener('click', () => {
+      document.getElementById('generator').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.querySelectorAll('.strategy-cta').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const strat = btn.dataset.strategy;
+        strategyField.value = strat;
+        statusEl.textContent = `Stratégie sélectionnée : ${strat}. Prêt à appeler l'API.`;
+        statusEl.classList.remove('error');
+        document.getElementById('run').focus();
+      });
+    });
 
     document.getElementById("run").addEventListener("click", async () => {
       let payload;
@@ -293,20 +409,20 @@
         resultEl.innerHTML = `
           <div class="result-card">
             <div>
-              <p class="eyebrow">Numbers</p>
-              <div class="chips">${body.numbers.map((n) => `<span class="chip">${n}</span>`).join("")}</div>
+              <p class=\"eyebrow\">Numbers</p>
+              <div class=\"chips\">${body.numbers.map((n) => `<span class=\"chip\">${n}</span>`).join("")}</div>
             </div>
             <div>
-              <p class="eyebrow">Stars</p>
-              <div class="chips">${body.stars.map((n) => `<span class="chip">${n}</span>`).join("")}</div>
+              <p class=\"eyebrow\">Stars</p>
+              <div class=\"chips\">${body.stars.map((n) => `<span class=\"chip\">${n}</span>`).join("")}</div>
             </div>
             <div>
-              <p class="eyebrow">Confidence</p>
-              <p class="figure">${(body.confidence_score * 100).toFixed(1)}%</p>
+              <p class=\"eyebrow\">Confidence</p>
+              <p class=\"figure\">${(body.confidence_score * 100).toFixed(1)}%</p>
             </div>
             <div>
-              <p class="eyebrow">Method</p>
-              <p class="muted">${body.method_used}</p>
+              <p class=\"eyebrow\">Method</p>
+              <p class=\"muted\">${body.method_used}</p>
             </div>
           </div>
           <div class="result-card muted-block">
@@ -322,7 +438,7 @@
         statusEl.classList.add("error");
       } finally {
         runBtn.disabled = false;
-        runBtn.textContent = "Call API";
+        runBtn.textContent = "Générer avec l'API";
       }
     });
 
@@ -458,6 +574,8 @@
       setAdminStatus(`Training ${body.mode} déclenché (${body.status}). Dernier run: ${body.last_triggered_at}.`);
       adminOutput.textContent = JSON.stringify(body, null, 2);
     });
+
+    selectGame('euromillion');
   </script>
 </body>
 </html>
