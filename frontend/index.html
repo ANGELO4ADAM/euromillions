@@ -161,9 +161,10 @@
       <div class="cta-row gap wrap">
         <button class="btn primary" id="admin-import">Save manual draws</button>
         <button class="btn ghost" id="admin-list">List stored draws</button>
+        <button class="btn ghost" id="admin-summary">Summary</button>
         <button class="btn danger" id="admin-clear">Purge manual store</button>
       </div>
-      <div class="status" id="admin-status">Admin ready — import, list or purge manual draws.</div>
+      <div class="status" id="admin-status">Admin ready — import, list, summarize or purge manual draws.</div>
       <pre class="admin-output" id="admin-output"></pre>
     </section>
 
@@ -392,6 +393,19 @@
       }
 
       setAdminStatus(body.cleared ? "Purge effectuée." : "Aucun tirage à purger.");
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-summary").addEventListener("click", async () => {
+      setAdminStatus("Résumé en cours...");
+      const { response, body } = await adminRequest(`/api/admin/manual-draws`);
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du résumé"}`, true);
+        return;
+      }
+
+      setAdminStatus("Résumé récupéré.");
       adminOutput.textContent = JSON.stringify(body, null, 2);
     });
   </script>

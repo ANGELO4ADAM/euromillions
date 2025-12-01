@@ -42,6 +42,14 @@ def test_manual_draw_import_and_listing(monkeypatch, tmp_path):
     assert tuesday_data["stored"] == 1
     assert tuesday_data["draws"][0]["draw_date"] == "2024-06-18"
 
+    # Summary endpoint should reflect counts and last draw date
+    summary = client.get("/api/admin/manual-draws")
+    assert summary.status_code == 200
+    summary_data = summary.json()
+    euromillion_entry = next(item for item in summary_data["games"] if item["game"] == "euromillion")
+    assert euromillion_entry["stored"] == 2
+    assert euromillion_entry["last_draw_date"] == "2024-06-21"
+
 
 def test_manual_draw_import_can_replace(monkeypatch, tmp_path):
     manual_store = tmp_path / "manual_draws.json"

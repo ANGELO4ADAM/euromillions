@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 import ml_strategies
-from data_store import clear_draws, get_draws, persist_draws
+from data_store import clear_draws, get_draws, persist_draws, summarize_store
 from preparateur_donnees import prepare_features
 
 
@@ -263,6 +263,21 @@ def list_manual_draws(game: str, weekday: str | None = None) -> Dict[str, object
         ]
 
     return {"game": game.lower(), "stored": len(draws), "draws": draws}
+
+
+@app.get("/api/admin/manual-draws")
+def summarize_manual_store() -> Dict[str, object]:
+    summary = summarize_store()
+    games = []
+    for game in sorted(GAME_PROFILES.keys()):
+        stats = summary.get(game, {"stored": 0, "last_draw_date": None})
+        games.append({
+            "game": game,
+            "stored": stats.get("stored", 0),
+            "last_draw_date": stats.get("last_draw_date"),
+        })
+
+    return {"games": games}
 
 
 @app.delete("/api/admin/manual-draws/{game}")

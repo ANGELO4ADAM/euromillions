@@ -30,7 +30,7 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 5. Si le scraping échoue, un administrateur peut ajouter des tirages manuellement via `POST /api/admin/manual-draws` (voir ci-dessous)
    puis les consulter via `GET /api/admin/manual-draws/{game}` ou les purger via `DELETE /api/admin/manual-draws/{game}`. Chaque tirage peut
    embarquer un champ optionnel `draw_date` (YYYY-MM-DD) pour permettre des filtres par jour de la semaine. Le chemin du fichier stocké peut
-   être ajusté avec `MANUAL_DRAWS_PATH`.
+   être ajusté avec `MANUAL_DRAWS_PATH`. Un résumé global des tirages manuels par jeu est disponible via `GET /api/admin/manual-draws`.
 6. Le champ `use_manual_draws` (bool) permet, côté génération, d'inclure automatiquement l'historique persistant importé par l'administrateur
    pour le jeu ciblé. Si aucune donnée n'est disponible et que `draws` est vide, l'appel renverra un 404 explicite. L'ingestion manuelle accepte
    aussi un flag `replace` pour remplacer intégralement l'historique d'un jeu.
@@ -43,13 +43,14 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 * `GET /` : page d'accueil listant EUROMILLION et EURODREAM, avec un rappel bilingue (fr/en) que le générateur est uniquement ludique, ne garantit aucun gain et invite à jouer de manière responsable.
 * `POST /api/generate/{strategie}` : lance une stratégie (ex. `frequency`, `random`, `fibo`, `mcc`, `spectre`, `meta_ia`) avec un historique de tirages.
 * `POST /api/admin/manual-draws` : ingestion manuelle d'un ou plusieurs tirages validés (fallback en cas d'échec du scraping), avec support d'un champ `draw_date` (YYYY-MM-DD) et d'un booléen `replace` pour écraser l'existant.
+* `GET /api/admin/manual-draws` : résumé par jeu (compte et dernière date de tirage persistée) pour le fallback manuel.
 * `GET /api/admin/manual-draws/{game}` : retourne les tirages manuellement saisis pour le jeu ciblé, avec un filtre optionnel `weekday` (1-7 ou nom du jour en fr/en).
 * `DELETE /api/admin/manual-draws/{game}` : supprime tout l'historique manuel pour le jeu ciblé.
 * `GET /api/health` : vérifie que le service répond et expose les jeux/stratégies disponibles.
 
 ## Prototype UI (offline)
 * Ouvrir `frontend/index.html` directement dans un navigateur pour prévisualiser une landing moderne (dégradés subtils, cartes vitrée, typographie Inter/Space Grotesk).
-* Les sections clés : héros avec CTA, cartes jeux (EUROMILLION/EURODREAM), sélecteur de stratégies, admin/fallback manuel (import, filtre par jour, purge),
+* Les sections clés : héros avec CTA, cartes jeux (EUROMILLION/EURODREAM), sélecteur de stratégies, admin/fallback manuel (import, filtre par jour, résumé, purge),
   générateur live, insights et rappel bilingue de jeu responsable.
 
 ## Validation des entrées

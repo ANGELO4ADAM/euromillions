@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import date
 from pathlib import Path
 from typing import Dict, List
 
@@ -73,3 +74,27 @@ def clear_draws(game: str) -> bool:
 def get_draws(game: str) -> List[Dict[str, object]]:
     store = load_store()
     return store.get(game.lower(), [])
+
+
+def summarize_store() -> Dict[str, Dict[str, object]]:
+    """Return a summary of the stored manual draws per game."""
+
+    store = load_store()
+    summary: Dict[str, Dict[str, object]] = {}
+    for game, draws in store.items():
+        last_date = None
+        for draw in draws:
+            draw_date = draw.get("draw_date") if isinstance(draw, dict) else None
+            if not draw_date:
+                continue
+            try:
+                parsed = date.fromisoformat(str(draw_date))
+            except ValueError:
+                continue
+            last_date = parsed if last_date is None or parsed > last_date else last_date
+
+        summary[game] = {
+            "stored": len(draws),
+            "last_draw_date": last_date.isoformat() if last_date else None,
+        }
+    return summary
