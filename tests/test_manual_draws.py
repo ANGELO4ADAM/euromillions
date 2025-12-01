@@ -119,3 +119,40 @@ def test_manual_draw_import_rejects_invalid_date(monkeypatch, tmp_path):
     response = client.post("/api/admin/manual-draws", json=payload)
     assert response.status_code == 422
     assert "Date de tirage invalide" in response.json()["detail"]
+
+
+def test_backup_and_training_status(monkeypatch, tmp_path):
+    manual_store = tmp_path / "manual_draws.json"
+    training_store = tmp_path / "training_status.json"
+    monkeypatch.setenv("MANUAL_DRAWS_PATH", str(manual_store))
+    monkeypatch.setenv("TRAINING_STATUS_PATH", str(training_store))
+    client = TestClient(app)
+
+    # Seed manual draws
+    payload = {
+        "game": "EUROMILLION",
+        "draws": [{"numbers": [1, 2, 3, 4, 5], "stars": [1, 2], "draw_date": "2024-07-02"}],
+    }
+    assert client.post("/api/admin/manual-draws", json=payload).status_code == 200
+
+    backup = client.get("/api/admin/manual-draws/backup")
+    assert backup.status_code == 200
+    backup_body = backup.json()
+    assert backup_body["store"]["euromillion"][0]["draw_date"] == "2024-07-02"
+
+    # Trigger training and check persisted status
+    trigger = client.post(
+        "/api/admin/train",
+        json={"mode": "manual", "source": "ops", "note": "backup sync"},
+    )
+    assert trigger.status_code == 200
+    trigger_body = trigger.json()
+    assert trigger_body["mode"] == "manual"
+    assert trigger_body["status"] == "scheduled"
+    assert trigger_body["source"] == "ops"
+
+    status = client.get("/api/admin/train")
+    assert status.status_code == 200
+    status_body = status.json()
+    assert status_body["last_mode"] == "manual"
+    assert status_body["runs"]

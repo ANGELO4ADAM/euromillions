@@ -146,6 +146,19 @@
           <input id="admin-weekday" type="text" placeholder="tuesday / vendredi / 5" />
           <p class="muted minor">Optionnel pour lister : 1-7 ou nom du jour (en/fr).</p>
         </label>
+        <label>
+          <span class="eyebrow">Training mode</span>
+          <select id="train-mode">
+            <option value="manual" selected>Manual</option>
+            <option value="auto">Auto</option>
+          </select>
+          <p class="muted minor">Déclencher un run de formation (stub).</p>
+        </label>
+        <label>
+          <span class="eyebrow">Training source / note</span>
+          <input id="train-source" type="text" placeholder="Ops user, cron, etc." />
+          <p class="muted minor">Note libre pour tracer l'origine du run.</p>
+        </label>
       </div>
       <label class="stack">
         <span class="eyebrow">Manual draws (JSON)</span>
@@ -162,9 +175,11 @@
         <button class="btn primary" id="admin-import">Save manual draws</button>
         <button class="btn ghost" id="admin-list">List stored draws</button>
         <button class="btn ghost" id="admin-summary">Summary</button>
+        <button class="btn ghost" id="admin-backup">Backup</button>
+        <button class="btn ghost" id="admin-train">Trigger training</button>
         <button class="btn danger" id="admin-clear">Purge manual store</button>
       </div>
-      <div class="status" id="admin-status">Admin ready — import, list, summarize or purge manual draws.</div>
+      <div class="status" id="admin-status">Admin ready — import, list, summarize, backup or purge manual draws. Training triggers are logged.</div>
       <pre class="admin-output" id="admin-output"></pre>
     </section>
 
@@ -211,6 +226,8 @@
     const adminReplaceField = document.getElementById("admin-replace");
     const adminStatus = document.getElementById("admin-status");
     const adminOutput = document.getElementById("admin-output");
+    const trainModeField = document.getElementById("train-mode");
+    const trainSourceField = document.getElementById("train-source");
 
     const samplePayload = {
       draws: [
@@ -406,6 +423,39 @@
       }
 
       setAdminStatus("Résumé récupéré.");
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-backup").addEventListener("click", async () => {
+      setAdminStatus("Export en cours...");
+      const { response, body } = await adminRequest(`/api/admin/manual-draws/backup`);
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du backup"}`, true);
+        return;
+      }
+
+      setAdminStatus("Backup prêt (JSON). Vous pouvez copier les données pour archivage.");
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-train").addEventListener("click", async () => {
+      setAdminStatus("Déclenchement du training...");
+      const { response, body } = await adminRequest(`/api/admin/train`, {
+        method: "POST",
+        body: JSON.stringify({
+          mode: trainModeField.value,
+          source: trainSourceField.value || null,
+          note: trainSourceField.value || null,
+        }),
+      });
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du déclenchement"}`, true);
+        return;
+      }
+
+      setAdminStatus(`Training ${body.mode} déclenché (${body.status}). Dernier run: ${body.last_triggered_at}.`);
       adminOutput.textContent = JSON.stringify(body, null, 2);
     });
   </script>

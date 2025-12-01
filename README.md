@@ -30,7 +30,8 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 5. Si le scraping échoue, un administrateur peut ajouter des tirages manuellement via `POST /api/admin/manual-draws` (voir ci-dessous)
    puis les consulter via `GET /api/admin/manual-draws/{game}` ou les purger via `DELETE /api/admin/manual-draws/{game}`. Chaque tirage peut
    embarquer un champ optionnel `draw_date` (YYYY-MM-DD) pour permettre des filtres par jour de la semaine. Le chemin du fichier stocké peut
-   être ajusté avec `MANUAL_DRAWS_PATH`. Un résumé global des tirages manuels par jeu est disponible via `GET /api/admin/manual-draws`.
+   être ajusté avec `MANUAL_DRAWS_PATH`. Un résumé global des tirages manuels par jeu est disponible via `GET /api/admin/manual-draws` et
+   un export complet du store pour backup via `GET /api/admin/manual-draws/backup`.
 6. Le champ `use_manual_draws` (bool) permet, côté génération, d'inclure automatiquement l'historique persistant importé par l'administrateur
    pour le jeu ciblé. Si aucune donnée n'est disponible et que `draws` est vide, l'appel renverra un 404 explicite. L'ingestion manuelle accepte
    aussi un flag `replace` pour remplacer intégralement l'historique d'un jeu.
@@ -44,8 +45,10 @@ Les dépendances réseau étant limitées, le projet embarque des stubs minimali
 * `POST /api/generate/{strategie}` : lance une stratégie (ex. `frequency`, `random`, `fibo`, `mcc`, `spectre`, `meta_ia`) avec un historique de tirages.
 * `POST /api/admin/manual-draws` : ingestion manuelle d'un ou plusieurs tirages validés (fallback en cas d'échec du scraping), avec support d'un champ `draw_date` (YYYY-MM-DD) et d'un booléen `replace` pour écraser l'existant.
 * `GET /api/admin/manual-draws` : résumé par jeu (compte et dernière date de tirage persistée) pour le fallback manuel.
+* `GET /api/admin/manual-draws/backup` : export complet du store persistant (JSON) pour backup/archivage rapide.
 * `GET /api/admin/manual-draws/{game}` : retourne les tirages manuellement saisis pour le jeu ciblé, avec un filtre optionnel `weekday` (1-7 ou nom du jour en fr/en).
 * `DELETE /api/admin/manual-draws/{game}` : supprime tout l'historique manuel pour le jeu ciblé.
+* `POST /api/admin/train` / `GET /api/admin/train` : stub de déclenchement et de suivi de training (manual ou auto), utile pour tracer les runs et les backups d'entrée.
 * `GET /api/health` : vérifie que le service répond et expose les jeux/stratégies disponibles.
 
 ## Prototype UI (offline)

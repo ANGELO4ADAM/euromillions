@@ -8,7 +8,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 import ml_strategies
-from data_store import clear_draws, get_draws, persist_draws, summarize_store
+from data_store import (
+    clear_draws,
+    export_store,
+    get_draws,
+    load_training_status,
+    persist_draws,
+    record_training_run,
+    summarize_store,
+)
 from preparateur_donnees import prepare_features
 
 
@@ -39,6 +47,12 @@ class ManualDrawImport(BaseModel):
         default=False,
         description="Si vrai, remplace l'historique manuel existant par les tirages fournis.",
     )
+
+
+class TrainingTrigger(BaseModel):
+    mode: str = Field(default="manual", description="Mode de déclenchement (manual|auto)")
+    source: str | None = Field(default=None, description="Origine ou opérateur à l'origine du run")
+    note: str | None = Field(default=None, description="Notes libres (ex: backup, rattrapage de retard)")
 
 
 class StrategyResponse(BaseModel):
@@ -252,19 +266,6 @@ def ingest_manual_draws(payload: ManualDrawImport) -> Dict[str, object]:
     }
 
 
-@app.get("/api/admin/manual-draws/{game}")
-def list_manual_draws(game: str, weekday: str | None = None) -> Dict[str, object]:
-    get_game_profile(game)
-    draws = get_draws(game)
-    if weekday is not None:
-        target_weekday = _parse_weekday(weekday)
-        draws = [
-            d for d in draws if (found := _weekday_for_draw(d)) is not None and found == target_weekday
-        ]
-
-    return {"game": game.lower(), "stored": len(draws), "draws": draws}
-
-
 @app.get("/api/admin/manual-draws")
 def summarize_manual_store() -> Dict[str, object]:
     summary = summarize_store()
@@ -280,8 +281,49 @@ def summarize_manual_store() -> Dict[str, object]:
     return {"games": games}
 
 
+@app.get("/api/admin/manual-draws/backup")
+def backup_manual_store() -> Dict[str, object]:
+    """Expose l'intégralité du stockage manuel pour un export/backup rapide."""
+
+    return {"store": export_store()}
+
+
+@app.get("/api/admin/manual-draws/{game}")
+def list_manual_draws(game: str, weekday: str | None = None) -> Dict[str, object]:
+    get_game_profile(game)
+    draws = get_draws(game)
+    if weekday is not None:
+        target_weekday = _parse_weekday(weekday)
+        draws = [
+            d for d in draws if (found := _weekday_for_draw(d)) is not None and found == target_weekday
+        ]
+
+    return {"game": game.lower(), "stored": len(draws), "draws": draws}
+
+
 @app.delete("/api/admin/manual-draws/{game}")
 def purge_manual_draws(game: str) -> Dict[str, object]:
     get_game_profile(game)
     deleted = clear_draws(game)
     return {"game": game.lower(), "cleared": deleted, "stored": 0}
+
+
+@app.post("/api/admin/train")
+def trigger_training(payload: TrainingTrigger) -> Dict[str, object]:
+    mode = payload.mode.lower()
+    if mode not in {"manual", "auto"}:
+        raise HTTPException(status_code=422, detail="Mode invalide : utilisez manual ou auto.")
+    status = record_training_run(mode, source=payload.source, note=payload.note)
+    return {
+        "status": "scheduled",
+        "mode": mode,
+        "source": payload.source,
+        "note": payload.note,
+        "last_triggered_at": status.get("last_triggered_at"),
+    }
+
+
+@app.get("/api/admin/train")
+def get_training_status() -> Dict[str, object]:
+    status = load_training_status()
+    return status

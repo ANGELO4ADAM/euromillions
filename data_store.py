@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List
 
@@ -12,6 +12,13 @@ def _store_path() -> Path:
     if override:
         return Path(override)
     return Path(__file__).parent / "data" / "manual_draws.json"
+
+
+def _training_status_path() -> Path:
+    override = os.environ.get("TRAINING_STATUS_PATH")
+    if override:
+        return Path(override)
+    return Path(__file__).parent / "data" / "training_status.json"
 
 
 def load_store() -> Dict[str, List[Dict[str, object]]]:
@@ -30,11 +37,59 @@ def load_store() -> Dict[str, List[Dict[str, object]]]:
     return {k: v for k, v in data.items() if isinstance(v, list)}
 
 
+def export_store() -> Dict[str, List[Dict[str, object]]]:
+    """Return the full persisted store for backup/inspection purposes."""
+
+    return load_store()
+
+
 def save_store(store: Dict[str, List[Dict[str, object]]]) -> Dict[str, List[Dict[str, object]]]:
     path = _store_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(store, indent=2, ensure_ascii=False), encoding="utf-8")
     return store
+
+
+def load_training_status() -> Dict[str, object]:
+    """Return the training status file (or defaults)."""
+
+    path = _training_status_path()
+    if not path.exists():
+        return {"last_mode": None, "last_triggered_at": None, "runs": []}
+    content = path.read_text(encoding="utf-8").strip()
+    if not content:
+        return {"last_mode": None, "last_triggered_at": None, "runs": []}
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError:
+        return {"last_mode": None, "last_triggered_at": None, "runs": []}
+    if not isinstance(data, dict):
+        return {"last_mode": None, "last_triggered_at": None, "runs": []}
+    runs = data.get("runs", []) if isinstance(data.get("runs"), list) else []
+    return {
+        "last_mode": data.get("last_mode"),
+        "last_triggered_at": data.get("last_triggered_at"),
+        "runs": runs,
+    }
+
+
+def save_training_status(status: Dict[str, object]) -> Dict[str, object]:
+    path = _training_status_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(status, indent=2, ensure_ascii=False), encoding="utf-8")
+    return status
+
+
+def record_training_run(mode: str, *, source: str | None = None, note: str | None = None) -> Dict[str, object]:
+    """Persist a lightweight training trigger and return the new status."""
+
+    now = datetime.utcnow().isoformat() + "Z"
+    status = load_training_status()
+    run_entry = {"mode": mode, "source": source, "note": note, "triggered_at": now}
+    status.setdefault("runs", []).append(run_entry)
+    status["last_mode"] = mode
+    status["last_triggered_at"] = now
+    return save_training_status(status)
 
 
 def append_draws(game: str, draws: List[Dict[str, object]]) -> List[Dict[str, object]]:
