@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Euro Draws Lab</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="hero">
+    <div class="badge">Labs Preview</div>
+    <h1>Euromillions Insights</h1>
+    <p class="lede">Visualisez les tendances, générez des combinaisons et comparez EUROMILLION et EURODREAM avec un tableau de bord moderne.</p>
+    <div class="cta-row">
+      <button class="btn primary">Generate smart picks</button>
+      <button class="btn ghost">View history</button>
+    </div>
+    <div class="disclaimer">
+      <strong>FR</strong> · Ce générateur est fourni à titre ludique. Aucun gain garanti.
+      <span class="dot">•</span>
+      <strong>EN</strong> · Entertainment-only generator. No winnings guaranteed.
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card highlight">
+      <div class="card-header">
+        <h2>Games</h2>
+        <span class="pill">Dual mode</span>
+      </div>
+      <div class="game-list">
+        <article class="game">
+          <div>
+            <p class="eyebrow">EUROMILLION</p>
+            <h3>Signature draws</h3>
+            <p class="muted">5 numbers · 2 stars · 50/12 range</p>
+          </div>
+          <div class="tag success">live</div>
+        </article>
+        <article class="game">
+          <div>
+            <p class="eyebrow">EURODREAM</p>
+            <h3>Experimental mode</h3>
+            <p class="muted">5 numbers · 2 stars · 50/12 range</p>
+          </div>
+          <div class="tag neutral">beta</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Strategy picker</h2>
+        <span class="pill soft">ML-ready</span>
+      </div>
+      <ul class="list">
+        <li>
+          <div>
+            <p class="eyebrow">Frequency</p>
+            <p class="muted">Choisit les numéros les plus fréquents + repli si peu de données.</p>
+          </div>
+          <button class="chip">Run</button>
+        </li>
+        <li>
+          <div>
+            <p class="eyebrow">Random</p>
+            <p class="muted">Tirage aléatoire trié dans les bornes du jeu.</p>
+          </div>
+          <button class="chip">Run</button>
+        </li>
+        <li>
+          <div>
+            <p class="eyebrow">Custom</p>
+            <p class="muted">Plug your model: API ready with /api/generate/&lt;strategie&gt;.</p>
+          </div>
+          <button class="chip hollow">Connect</button>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card live">
+      <div class="card-header">
+        <h2>Live generator</h2>
+        <span class="pill soft">API bridge</span>
+      </div>
+      <div class="form-grid">
+        <label>
+          <span class="eyebrow">Game</span>
+          <select id="game">
+            <option value="euromillion" selected>EUROMILLION</option>
+            <option value="eurodream">EURODREAM</option>
+          </select>
+        </label>
+        <label>
+          <span class="eyebrow">Strategy</span>
+          <select id="strategie">
+            <option value="frequency" selected>frequency</option>
+            <option value="random">random</option>
+            <option value="fibo">fibo</option>
+            <option value="mcc">mcc</option>
+            <option value="spectre">spectre</option>
+            <option value="meta_ia">meta_ia</option>
+          </select>
+        </label>
+        <label>
+          <span class="eyebrow">API base</span>
+          <input id="api-base" type="url" placeholder="http://localhost:8000" />
+          <p class="muted minor">Défaut : origine actuelle ou localhost si ouvert en file://</p>
+        </label>
+      </div>
+      <label class="inline-option">
+        <input id="use-manual" type="checkbox" />
+        <div>
+          <span class="eyebrow">Manual fallback</span>
+          <p class="muted minor">Merge admin-imported draws with the payload. If none exist and history is empty, the API returns 404.</p>
+        </div>
+      </label>
+      <label class="stack">
+        <span class="eyebrow">History (JSON payload)</span>
+        <textarea id="history" rows="6"></textarea>
+      </label>
+      <div class="cta-row gap">
+        <button class="btn primary" id="run">Call API</button>
+        <div class="status" id="status">Ready — use the sample payload or paste your own draws.</div>
+      </div>
+      <div class="result-grid" id="result" aria-live="polite"></div>
+    </section>
+
+    <section class="card admin">
+      <div class="card-header">
+        <h2>Admin fallback</h2>
+        <span class="pill soft">Manual store</span>
+      </div>
+      <p class="muted minor">Use when scraping fails: import validated draws, filter by weekday, replace or purge the store.</p>
+      <div class="form-grid">
+        <label>
+          <span class="eyebrow">Game</span>
+          <select id="admin-game">
+            <option value="euromillion" selected>EUROMILLION</option>
+            <option value="eurodream">EURODREAM</option>
+          </select>
+        </label>
+        <label>
+          <span class="eyebrow">Weekday filter</span>
+          <input id="admin-weekday" type="text" placeholder="tuesday / vendredi / 5" />
+          <p class="muted minor">Optionnel pour lister : 1-7 ou nom du jour (en/fr).</p>
+        </label>
+        <label>
+          <span class="eyebrow">Training mode</span>
+          <select id="train-mode">
+            <option value="manual" selected>Manual</option>
+            <option value="auto">Auto</option>
+          </select>
+          <p class="muted minor">Déclencher un run de formation (stub).</p>
+        </label>
+        <label>
+          <span class="eyebrow">Training source / note</span>
+          <input id="train-source" type="text" placeholder="Ops user, cron, etc." />
+          <p class="muted minor">Note libre pour tracer l'origine du run.</p>
+        </label>
+      </div>
+      <label class="stack">
+        <span class="eyebrow">Manual draws (JSON)</span>
+        <textarea id="admin-draws" rows="6"></textarea>
+      </label>
+      <label class="inline-option">
+        <input id="admin-replace" type="checkbox" />
+        <div>
+          <span class="eyebrow">Replace instead of append</span>
+          <p class="muted minor">Écrase l'historique manuel du jeu sélectionné.</p>
+        </div>
+      </label>
+      <div class="cta-row gap wrap">
+        <button class="btn primary" id="admin-import">Save manual draws</button>
+        <button class="btn ghost" id="admin-list">List stored draws</button>
+        <button class="btn ghost" id="admin-summary">Summary</button>
+        <button class="btn ghost" id="admin-backup">Backup</button>
+        <button class="btn ghost" id="admin-train">Trigger training</button>
+        <button class="btn danger" id="admin-clear">Purge manual store</button>
+      </div>
+      <div class="status" id="admin-status">Admin ready — import, list, summarize, backup or purge manual draws. Training triggers are logged.</div>
+      <pre class="admin-output" id="admin-output"></pre>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Latest insights</h2>
+        <span class="pill soft">In-context</span>
+      </div>
+      <div class="insights">
+        <div>
+          <p class="eyebrow">Next-up numbers</p>
+          <p class="figure">12 · 18 · 27 · 31 · 42</p>
+          <p class="muted">Confidence 72% · sliding window 20 draws</p>
+        </div>
+        <div>
+          <p class="eyebrow">Stars</p>
+          <p class="figure">3 · 11</p>
+          <p class="muted">Gap-weighted prediction</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Responsible play</h2>
+        <span class="pill soft">Safety</span>
+      </div>
+      <div class="responsible">
+        <p>FR · Jouez de manière responsable, fixez des limites et ne misez jamais plus que ce que vous pouvez vous permettre de perdre.</p>
+        <p>EN · Play responsibly, set limits, and never stake more than you can afford to lose.</p>
+      </div>
+    </section>
+  </main>
+  <script>
+    const historyField = document.getElementById("history");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const gameField = document.getElementById("game");
+    const strategyField = document.getElementById("strategie");
+    const useManualField = document.getElementById("use-manual");
+    const adminDrawsField = document.getElementById("admin-draws");
+    const adminGameField = document.getElementById("admin-game");
+    const adminWeekdayField = document.getElementById("admin-weekday");
+    const adminReplaceField = document.getElementById("admin-replace");
+    const adminStatus = document.getElementById("admin-status");
+    const adminOutput = document.getElementById("admin-output");
+    const trainModeField = document.getElementById("train-mode");
+    const trainSourceField = document.getElementById("train-source");
+
+    const samplePayload = {
+      draws: [
+        { numbers: [3, 11, 19, 24, 45], stars: [4, 11] },
+        { numbers: [5, 18, 27, 32, 42], stars: [2, 10] },
+        { numbers: [1, 7, 21, 28, 49], stars: [3, 6] },
+      ],
+      game: "euromillion",
+      use_manual_draws: false,
+    };
+
+    historyField.value = JSON.stringify(samplePayload, null, 2);
+
+    const adminSample = [
+      { numbers: [1, 14, 23, 36, 45], stars: [2, 7], draw_date: "2024-06-18" },
+      { numbers: [3, 17, 28, 41, 47], stars: [5, 12], draw_date: "2024-06-21" },
+    ];
+    adminDrawsField.value = JSON.stringify(adminSample, null, 2);
+
+    const apiField = document.getElementById("api-base");
+    const defaultBase = window.location.origin && window.location.origin !== "null"
+      ? window.location.origin
+      : "http://localhost:8000";
+    apiField.placeholder = defaultBase;
+
+    document.getElementById("run").addEventListener("click", async () => {
+      let payload;
+      try {
+        payload = JSON.parse(historyField.value || "{}");
+        payload.game = gameField.value;
+        payload.use_manual_draws = useManualField.checked;
+      } catch (err) {
+        statusEl.textContent = "Payload invalide : veuillez fournir un JSON valide.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      const strategie = strategyField.value;
+      const base = apiField.value.trim() || defaultBase;
+      statusEl.textContent = `Calling ${base}/api/generate/${strategie} ...`;
+      statusEl.classList.remove("error");
+      resultEl.innerHTML = "";
+      const runBtn = document.getElementById("run");
+      runBtn.disabled = true;
+      runBtn.textContent = "Calling...";
+
+      try {
+        const response = await fetch(`${base}/api/generate/${strategie}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const body = await response.json();
+        if (!response.ok) {
+          statusEl.textContent = `Erreur ${response.status} : ${body.detail || "échec de l'appel"}`;
+          statusEl.classList.add("error");
+          return;
+        }
+
+        statusEl.textContent = "Réponse reçue";
+        statusEl.classList.remove("error");
+        resultEl.innerHTML = `
+          <div class="result-card">
+            <div>
+              <p class="eyebrow">Numbers</p>
+              <div class="chips">${body.numbers.map((n) => `<span class="chip">${n}</span>`).join("")}</div>
+            </div>
+            <div>
+              <p class="eyebrow">Stars</p>
+              <div class="chips">${body.stars.map((n) => `<span class="chip">${n}</span>`).join("")}</div>
+            </div>
+            <div>
+              <p class="eyebrow">Confidence</p>
+              <p class="figure">${(body.confidence_score * 100).toFixed(1)}%</p>
+            </div>
+            <div>
+              <p class="eyebrow">Method</p>
+              <p class="muted">${body.method_used}</p>
+            </div>
+          </div>
+          <div class="result-card muted-block">
+            <p class="eyebrow">Explanation</p>
+            <p class="muted">${body.explanation}</p>
+            <p class="eyebrow">Features</p>
+            <pre>${JSON.stringify(body.features, null, 2)}</pre>
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "API inaccessible : démarrez le backend (uvicorn main:app --reload).";
+        statusEl.classList.add("error");
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = "Call API";
+      }
+    });
+
+    async function adminRequest(path, options = {}) {
+      const base = apiField.value.trim() || defaultBase;
+      const response = await fetch(`${base}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+      });
+      let body;
+      try {
+        body = await response.json();
+      } catch (err) {
+        body = { detail: "Réponse invalide" };
+      }
+      return { response, body };
+    }
+
+    function setAdminStatus(text, isError = false) {
+      adminStatus.textContent = text;
+      adminStatus.classList.toggle("error", isError);
+    }
+
+    document.getElementById("admin-import").addEventListener("click", async () => {
+      let draws;
+      try {
+        const parsed = JSON.parse(adminDrawsField.value || "[]");
+        draws = Array.isArray(parsed) ? parsed : parsed.draws;
+      } catch (err) {
+        setAdminStatus("Payload invalide : fournissez une liste JSON de tirages.", true);
+        return;
+      }
+
+      if (!Array.isArray(draws)) {
+        setAdminStatus("Attendu : un tableau de tirages (numbers/stars).", true);
+        return;
+      }
+
+      setAdminStatus("Import en cours...");
+      const { response, body } = await adminRequest("/api/admin/manual-draws", {
+        method: "POST",
+        body: JSON.stringify({
+          game: adminGameField.value,
+          replace: adminReplaceField.checked,
+          draws,
+        }),
+      });
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec de l'import"}`, true);
+        return;
+      }
+
+      setAdminStatus(`Import réussi (${body.mode}) : ${body.stored} tirage(s) stocké(s).`);
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-list").addEventListener("click", async () => {
+      setAdminStatus("Listing...");
+      const weekday = adminWeekdayField.value.trim();
+      const query = weekday ? `?weekday=${encodeURIComponent(weekday)}` : "";
+      const { response, body } = await adminRequest(
+        `/api/admin/manual-draws/${adminGameField.value}${query}`
+      );
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du listing"}`, true);
+        return;
+      }
+
+      setAdminStatus(`Listing : ${body.stored} tirage(s).`);
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-clear").addEventListener("click", async () => {
+      setAdminStatus("Purge en cours...");
+      const { response, body } = await adminRequest(
+        `/api/admin/manual-draws/${adminGameField.value}`,
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec de la purge"}`, true);
+        return;
+      }
+
+      setAdminStatus(body.cleared ? "Purge effectuée." : "Aucun tirage à purger.");
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-summary").addEventListener("click", async () => {
+      setAdminStatus("Résumé en cours...");
+      const { response, body } = await adminRequest(`/api/admin/manual-draws`);
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du résumé"}`, true);
+        return;
+      }
+
+      setAdminStatus("Résumé récupéré.");
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-backup").addEventListener("click", async () => {
+      setAdminStatus("Export en cours...");
+      const { response, body } = await adminRequest(`/api/admin/manual-draws/backup`);
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du backup"}`, true);
+        return;
+      }
+
+      setAdminStatus("Backup prêt (JSON). Vous pouvez copier les données pour archivage.");
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+
+    document.getElementById("admin-train").addEventListener("click", async () => {
+      setAdminStatus("Déclenchement du training...");
+      const { response, body } = await adminRequest(`/api/admin/train`, {
+        method: "POST",
+        body: JSON.stringify({
+          mode: trainModeField.value,
+          source: trainSourceField.value || null,
+          note: trainSourceField.value || null,
+        }),
+      });
+
+      if (!response.ok) {
+        setAdminStatus(`Erreur ${response.status} : ${body.detail || "échec du déclenchement"}`, true);
+        return;
+      }
+
+      setAdminStatus(`Training ${body.mode} déclenché (${body.status}). Dernier run: ${body.last_triggered_at}.`);
+      adminOutput.textContent = JSON.stringify(body, null, 2);
+    });
+  </script>
+</body>
+</html>
